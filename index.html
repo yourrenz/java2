@@ -1,503 +1,262 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>AR İp Simülasyonu</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dijital İp Ağı (Cat's Cradle AR)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #03070a;
-      --c1: #00ffe0;
-      --c2: #ff2d78;
-      --c3: #ffe100;
-      --c4: #a259ff;
-      --text: #c8e8e0;
-      --panel: rgba(3,10,15,0.88);
+      --bg: #050a0e;
+      --teal: #00e5cc;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
-      height: 100dvh;
+      margin: 0; padding: 0;
+      background-color: var(--bg);
+      font-family: 'Space Mono', monospace;
+      height: 100vh;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ── HEADER ─────────────────────────────────── */
-    header {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      z-index: 30;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 20px;
-      background: var(--panel);
-      border-bottom: 1px solid rgba(0,255,224,0.18);
-      backdrop-filter: blur(8px);
-    }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .logo-dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: var(--c1);
-      animation: pulse 1.8s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(0,255,224,0.6); }
-      50% { box-shadow: 0 0 0 8px rgba(0,255,224,0); }
-    }
-    .logo-text { font-size: 15px; font-weight: 700; letter-spacing: 3px; color: var(--c1); }
-    .badge {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      padding: 4px 10px;
-      border-radius: 20px;
-      border: 1px solid;
-    }
-    .badge-ready { border-color: #00ff88; color: #00ff88; }
-    .badge-loading { border-color: #ffaa00; color: #ffaa00; }
-
-    /* ── CANVAS AREA ─────────────────────────────── */
-    .scene {
-      position: relative;
-      width: 100%;
-      height: 100%;
-    }
-    #webcam, #cvs {
-      position: absolute;
-      width: 100%; height: 100%;
-      object-fit: cover;
-    }
-    #webcam { transform: scaleX(-1); }
-    #cvs { z-index: 2; }
-
-    /* ── MODE PANEL (bottom) ────────────────────── */
-    .mode-panel {
-      position: absolute;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 30;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      background: var(--panel);
-      padding: 10px 16px;
-      border-radius: 50px;
-      border: 1px solid rgba(255,255,255,0.1);
-      backdrop-filter: blur(12px);
-      transition: opacity 0.4s;
-    }
-    .mode-panel.hidden { opacity: 0; pointer-events: none; }
-
-    .mode-btn {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      padding: 8px 18px;
-      border-radius: 30px;
-      border: 1.5px solid rgba(255,255,255,0.2);
-      background: transparent;
-      color: var(--text);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .mode-btn:hover { border-color: var(--c1); color: var(--c1); }
-    .mode-btn.active {
-      background: var(--c1);
-      color: #03070a;
-      border-color: var(--c1);
-    }
-
-    /* ── START BUTTON ───────────────────────────── */
-    .start-wrap {
-      position: absolute;
-      inset: 0;
-      z-index: 40;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(3,7,10,0.75);
-      backdrop-filter: blur(4px);
-      gap: 28px;
-      transition: opacity 0.5s;
     }
-    .start-wrap.gone { opacity: 0; pointer-events: none; }
-
-    .start-icon {
-      width: 80px; height: 80px;
-      border-radius: 50%;
-      border: 2px solid var(--c1);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 34px;
-      animation: floatIcon 3s ease-in-out infinite;
-    }
-    @keyframes floatIcon {
-      0%,100% { transform: translateY(0); }
-      50% { transform: translateY(-12px); }
-    }
-
-    .start-title {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      color: #fff;
-      text-align: center;
-    }
-    .start-sub {
-      font-size: 13px;
-      color: rgba(200,232,224,0.55);
-      text-align: center;
-      max-width: 280px;
-      line-height: 1.6;
-    }
-
-    .btn-start {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: 14px;
-      letter-spacing: 2px;
-      padding: 16px 42px;
-      border-radius: 50px;
-      border: none;
-      background: linear-gradient(135deg, var(--c1), #00aacc);
-      color: #03070a;
-      cursor: pointer;
-      box-shadow: 0 0 30px rgba(0,255,224,0.35);
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .btn-start:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-    .btn-start:not(:disabled):hover {
-      transform: scale(1.04);
-      box-shadow: 0 0 50px rgba(0,255,224,0.5);
-    }
-
-    /* ── HAND COUNT HINT ─────────────────────────── */
-    .hint {
+    
+    header {
       position: absolute;
-      top: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 25;
-      font-size: 12px;
-      letter-spacing: 1.5px;
-      color: rgba(200,232,224,0.45);
-      pointer-events: none;
+      top: 0; left: 0; right: 0;
+      padding: 15px 20px;
+      background: rgba(5, 10, 14, 0.8);
+      color: var(--teal);
+      z-index: 10;
+      text-align: center;
+      letter-spacing: 2px;
+      border-bottom: 1px solid rgba(0, 229, 204, 0.3);
     }
+    h1 { font-size: 18px; margin: 0 0 5px 0; text-shadow: 0 0 10px rgba(0,229,204,0.5); }
+    p { margin: 0; font-size: 12px; color: #69ff47; }
+
+    #liveView {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Video ve Canvas üst üste ve ayna (mirror) efektli */
+    video {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1); /* Kamerayı ayna gibi yap */
+    }
+    canvas {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 2;
+    }
+
+    #webcamButton {
+      position: absolute;
+      bottom: 40px;
+      z-index: 10;
+      background-color: var(--teal);
+      color: var(--bg);
+      border: none;
+      padding: 15px 30px;
+      font-size: 14px;
+      font-weight: bold;
+      font-family: 'Space Mono', monospace;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0,229,204,0.5);
+      transition: transform 0.2s;
+    }
+    #webcamButton:active { transform: scale(0.95); }
+    .removed { display: none !important; }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">
-    <div class="logo-dot" id="dot"></div>
-    <span class="logo-text">AR STRINGS</span>
+  <header>
+    <h1>DİJİTAL İP AĞI (CAT'S CRADLE)</h1>
+    <p id="status-text">Model Yükleniyor, lütfen bekleyin...</p>
+  </header>
+
+  <div id="liveView">
+    <video id="webcam" autoplay playsinline></video>
+    <canvas id="output_canvas"></canvas>
+    <button id="webcamButton" disabled>KAMERAYI AÇ</button>
   </div>
-  <div class="badge badge-loading" id="badge">YÜKLÜYOR</div>
-</header>
-
-<div class="scene">
-  <video id="webcam" autoplay playsinline muted></video>
-  <canvas id="cvs"></canvas>
-
-  <!-- Start overlay -->
-  <div class="start-wrap" id="startWrap">
-    <div class="start-icon">🖐</div>
-    <div class="start-title">AR İP SİMÜLASYONU</div>
-    <div class="start-sub">İki elinizi kameraya gösterin.<br>Parmaklarınız arasında fiziksel ipler oluşur.</div>
-    <button class="btn-start" id="btnStart" disabled>KAMERAYI BAŞLAT</button>
-  </div>
-
-  <!-- Mode selector (visible after camera starts) -->
-  <div class="mode-panel hidden" id="modePanel">
-    <button class="mode-btn active" data-mode="neon">NEON</button>
-    <button class="mode-btn" data-mode="rainbow">RAINBOW</button>
-    <button class="mode-btn" data-mode="fire">ATEŞ</button>
-    <button class="mode-btn" data-mode="ice">BUZ</button>
-  </div>
-
-  <div class="hint" id="hint"></div>
-</div>
 
 <script type="module">
-import { HandLandmarker, FilesetResolver }
-  from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+import {
+  HandLandmarker,
+  FilesetResolver
+} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
 
-/* ── DOM ──────────────────────────────────────────── */
-const video    = document.getElementById("webcam");
-const cvs      = document.getElementById("cvs");
-const ctx      = cvs.getContext("2d");
-const btnStart = document.getElementById("btnStart");
-const badge    = document.getElementById("badge");
-const dot      = document.getElementById("dot");
-const startWrap= document.getElementById("startWrap");
-const modePanel= document.getElementById("modePanel");
-const hint     = document.getElementById("hint");
+let handLandmarker = undefined;
+let webcamRunning = false;
+let lastVideoTime = -1;
 
-/* ── STATE ────────────────────────────────────────── */
-let handLM, running = false, lastTime = -1;
-let currentMode = "neon";
+const video = document.getElementById("webcam");
+const canvasElement = document.getElementById("output_canvas");
+const canvasCtx = canvasElement.getContext("2d");
+const enableWebcamButton = document.getElementById("webcamButton");
+const statusText = document.getElementById("status-text");
 
-const MODES = {
-  neon:    { ropes: ["#00ffe0","#ff2d78","#ffe100"] },
-  rainbow: { ropes: ["hsl-cycle","hsl-cycle","hsl-cycle"] },
-  fire:    { ropes: ["#ff6600","#ff3300","#ffcc00"] },
-  ice:     { ropes: ["#88ddff","#aaeeff","#ffffff"] },
-};
-
-let hue = 0; // for rainbow cycle
-
-/* ── PARTICLES ───────────────────────────────────── */
-const particles = [];
-function spawnParticles(x, y, color) {
-  for (let i = 0; i < 3; i++) {
-    particles.push({
-      x, y,
-      vx: (Math.random() - 0.5) * 3,
-      vy: (Math.random() - 0.5) * 3 - 1,
-      life: 1,
-      color,
-      size: Math.random() * 3 + 1,
-    });
-  }
-}
-function updateParticles() {
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
-    p.x += p.vx; p.y += p.vy;
-    p.vy += 0.12;
-    p.life -= 0.04;
-    if (p.life <= 0) { particles.splice(i, 1); continue; }
-    ctx.globalAlpha = p.life * 0.8;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-    ctx.fillStyle = p.color;
-    ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-}
-
-/* ── VERLET ROPE ──────────────────────────────────── */
-class Rope {
-  constructor(segments, baseColor) {
-    this.baseColor = baseColor;
-    this.segs = segments;
-    this.rest = 11;
-    this.pts = Array.from({ length: segments }, () => ({ x: 0, y: 0, ox: 0, oy: 0 }));
-  }
-
-  update(x0, y0, x1, y1) {
-    const p = this.pts, n = p.length;
-    p[0].x = x0; p[0].y = y0;
-    p[n-1].x = x1; p[n-1].y = y1;
-
-    for (let i = 1; i < n - 1; i++) {
-      let vx = (p[i].x - p[i].ox) * 0.94;
-      let vy = (p[i].y - p[i].oy) * 0.94 + 1.4;
-      p[i].ox = p[i].x; p[i].oy = p[i].y;
-      p[i].x += vx; p[i].y += vy;
-    }
-
-    for (let it = 0; it < 12; it++) {
-      for (let i = 0; i < n - 1; i++) {
-        const a = p[i], b = p[i+1];
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const dist = Math.sqrt(dx*dx + dy*dy) || 1;
-        const pct = (this.rest - dist) / dist / 2;
-        const ox = dx * pct, oy = dy * pct;
-        if (i !== 0)   { a.x -= ox; a.y -= oy; }
-        if (i+1 !== n-1) { b.x += ox; b.y += oy; }
-      }
-    }
-  }
-
-  getColor(t) {
-    if (this.baseColor === "hsl-cycle") return `hsl(${(hue + t * 120) % 360},100%,65%)`;
-    return this.baseColor;
-  }
-
-  draw() {
-    const p = this.pts, n = p.length;
-    for (let i = 0; i < n - 1; i++) {
-      const t = i / n;
-      const col = this.getColor(t);
-      ctx.beginPath();
-      ctx.moveTo(p[i].x, p[i].y);
-      ctx.lineTo(p[i+1].x, p[i+1].y);
-      ctx.strokeStyle = col;
-      ctx.lineWidth = 3;
-      ctx.lineCap = "round";
-      ctx.shadowColor = col;
-      ctx.shadowBlur = 16;
-      ctx.stroke();
-    }
-    ctx.shadowBlur = 0;
-  }
-}
-
-/* ── ROPE INSTANCES ──────────────────────────────── */
-// 3 ropes: thumbs, index fingers, middle fingers
-const ropes = [
-  new Rope(28, "#00ffe0"),
-  new Rope(28, "#ff2d78"),
-  new Rope(28, "#ffe100"),
-];
-
-function applyMode() {
-  const m = MODES[currentMode];
-  ropes.forEach((r, i) => {
-    r.baseColor = m.ropes[i] || m.ropes[0];
-  });
-}
-applyMode();
-
-/* ── MEDIAPIPE ───────────────────────────────────── */
-async function loadModel() {
+// 1. MEDIAPIPE MODELİNİ YÜKLE
+const createHandLandmarker = async () => {
   const vision = await FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
   );
-  handLM = await HandLandmarker.createFromOptions(vision, {
+  handLandmarker = await HandLandmarker.createFromOptions(vision, {
     baseOptions: {
       modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-      delegate: "GPU",
+      delegate: "GPU"
     },
     runningMode: "VIDEO",
-    numHands: 2,
-    minHandDetectionConfidence: 0.55,
-    minTrackingConfidence: 0.55,
+    numHands: 2 // İki eli de algıla
   });
-  badge.textContent = "HAZIR";
-  badge.className = "badge badge-ready";
-  dot.style.background = "#00ff88";
-  btnStart.disabled = false;
-}
-loadModel();
+  
+  statusText.textContent = "Sistem Hazır. Kamerayı açabilirsiniz.";
+  statusText.style.color = "#00e5cc";
+  enableWebcamButton.disabled = false;
+};
+createHandLandmarker();
 
-/* ── GLOWING DOT ─────────────────────────────────── */
-function drawDot(x, y, color) {
+// 2. KAMERAYI BAŞLAT
+const hasGetUserMedia = () => !!navigator.mediaDevices?.getUserMedia;
+
+if (hasGetUserMedia()) {
+  enableWebcamButton.addEventListener("click", enableCam);
+} else {
+  console.warn("Tarayıcınız kamera erişimini desteklemiyor.");
+}
+
+function enableCam(event) {
+  if (!handLandmarker) return;
+
+  webcamRunning = true;
+  enableWebcamButton.classList.add("removed");
+
+  const constraints = { video: { facingMode: "user" } };
+
+  navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+    video.srcObject = stream;
+    video.addEventListener("loadeddata", predictWebcam);
+  });
+}
+
+// 3. İP ÇİZİM FONKSİYONU (Sarkma ve Neon Efektli)
+function drawString(ctx, p1, p2, color) {
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+
+  // Mesafe arttıkça ip aşağı doğru sarkar (Yerçekimi hissi)
+  const sag = dist * 0.15; 
+  const cx = (p1.x + p2.x) / 2;
+  const cy = ((p1.y + p2.y) / 2) + sag;
+
   ctx.beginPath();
-  ctx.arc(x, y, 7, 0, Math.PI * 2);
-  ctx.fillStyle = "#fff";
+  ctx.moveTo(p1.x, p1.y);
+  // Düz çizgi (lineTo) yerine kavisli çizgi (quadraticCurveTo) kullanıyoruz
+  ctx.quadraticCurveTo(cx, cy, p2.x, p2.y);
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
   ctx.shadowColor = color;
-  ctx.shadowBlur = 20;
-  ctx.fill();
-  ctx.shadowBlur = 0;
+  ctx.shadowBlur = 12; // Neon parlama
+  ctx.stroke();
+  
+  ctx.shadowBlur = 0; // Diğer çizimleri etkilememesi için sıfırla
 }
 
-/* ── MAIN LOOP ───────────────────────────────────── */
-function loop() {
-  if (!running) return;
-  if (video.readyState >= 2 && lastTime !== video.currentTime) {
-    lastTime = video.currentTime;
+// 4. SÜREKLİ TAHMİN VE ÇİZİM DÖNGÜSÜ
+async function predictWebcam() {
+  canvasElement.style.width = video.clientWidth + "px";
+  canvasElement.style.height = video.clientHeight + "px";
+  canvasElement.width = video.clientWidth;
+  canvasElement.height = video.clientHeight;
+  
+  let startTimeMs = performance.now();
+  let results = undefined;
 
-    cvs.width  = video.clientWidth;
-    cvs.height = video.clientHeight;
-    const w = cvs.width, h = cvs.height;
+  if (lastVideoTime !== video.currentTime) {
+    lastVideoTime = video.currentTime;
+    results = handLandmarker.detectForVideo(video, startTimeMs);
+  }
 
-    ctx.clearRect(0, 0, w, h);
+  canvasCtx.save();
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-    // Mirror transform
-    ctx.save();
-    ctx.translate(w, 0);
-    ctx.scale(-1, 1);
+  if (results && results.landmarks.length > 0) {
+    const w = canvasElement.width;
+    const h = canvasElement.height;
+    
+    // Parmak ucu indeksleri: Başparmak(4), İşaret(8), Orta(12), Yüzük(16), Serçe(20)
+    const tips = [4, 8, 12, 16, 20];
+    const colors = ["#00e5cc", "#ff4081", "#ffd600", "#69ff47", "#e040fb"];
 
-    hue = (hue + 0.8) % 360;
+    // Koorinatları ayna moduna (mirror) göre hesaplama yardımcısı
+    const getPoint = (lm) => ({ x: (1 - lm.x) * w, y: lm.y * h });
 
-    const result = handLM.detectForVideo(video, performance.now());
-    const hands = result.landmarks;
+    if (results.landmarks.length === 2) {
+      // İKİ EL EKRANDAYSA: Ay Sefası (Cat's cradle) ağı ör
+      const hand1 = results.landmarks[0];
+      const hand2 = results.landmarks[1];
 
-    if (hands && hands.length > 0) {
-      // Fingertip indices: 4=thumb, 8=index, 12=middle
-      const TIPS = [4, 8, 12];
-
-      if (hands.length === 2) {
-        hint.textContent = "İKİ EL ALGILANDI";
-        TIPS.forEach((tip, ri) => {
-          const a = hands[0][tip];
-          const b = hands[1][tip];
-          const ax = a.x * w, ay = a.y * h;
-          const bx = b.x * w, by = b.y * h;
-          ropes[ri].update(ax, ay, bx, by);
-          ropes[ri].draw();
-          drawDot(ax, ay, ropes[ri].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[ri].baseColor);
-          drawDot(bx, by, ropes[ri].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[ri].baseColor);
-          spawnParticles(ax, ay, ropes[ri].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[ri].baseColor);
-          spawnParticles(bx, by, ropes[ri].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[ri].baseColor);
-        });
-      } else if (hands.length === 1) {
-        hint.textContent = "TEK EL — İKİ ELİ GÖSTER";
-        const thumb = hands[0][4];
-        const index = hands[0][8];
-        const tx = thumb.x * w, ty = thumb.y * h;
-        const ix = index.x * w, iy = index.y * h;
-        ropes[0].update(tx, ty, ix, iy);
-        ropes[0].draw();
-        drawDot(tx, ty, ropes[0].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[0].baseColor);
-        drawDot(ix, iy, ropes[0].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[0].baseColor);
-        spawnParticles(tx, ty, ropes[0].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[0].baseColor);
-        spawnParticles(ix, iy, ropes[0].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[0].baseColor);
+      // Aynı parmakları karşılıklı bağla (Baş->Baş, İşaret->İşaret vs.)
+      for (let i = 0; i < tips.length; i++) {
+        const p1 = getPoint(hand1[tips[i]]);
+        const p2 = getPoint(hand2[tips[i]]);
+        drawString(canvasCtx, p1, p2, colors[i]);
       }
-    } else {
-      hint.textContent = "ELLERİNİZİ KAMERAYA GÖSTERIN";
+
+      // Çapraz bağlar ekle (Ağ hissiyatını güçlendirmek için)
+      drawString(canvasCtx, getPoint(hand1[4]), getPoint(hand2[20]), "#ffffff"); // Sol Baş -> Sağ Serçe
+      drawString(canvasCtx, getPoint(hand1[20]), getPoint(hand2[4]), "#ffffff"); // Sol Serçe -> Sağ Baş
+      drawString(canvasCtx, getPoint(hand1[8]), getPoint(hand2[12]), "#00e5cc"); // Sol İşaret -> Sağ Orta
+      drawString(canvasCtx, getPoint(hand1[12]), getPoint(hand2[8]), "#ff4081"); // Sol Orta -> Sağ İşaret
+
+    } else if (results.landmarks.length === 1) {
+      // TEK EL EKRANDAYSA: Kendi parmakları arasında yıldız şeklinde ağ ör
+      const hand = results.landmarks[0];
+      const thumbPoint = getPoint(hand[4]); // Başparmak merkez nokta
+
+      for (let i = 1; i < tips.length; i++) {
+        const p = getPoint(hand[tips[i]]);
+        drawString(canvasCtx, thumbPoint, p, colors[i]); // Başparmaktan diğer parmaklara
+      }
     }
 
-    updateParticles();
-    ctx.restore();
-  }
-  requestAnimationFrame(loop);
-}
-
-/* ── CAMERA START ────────────────────────────────── */
-btnStart.addEventListener("click", async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }
+    // Ekstra Detay: Tüm parmak uçlarına parlak neon noktalar çiz
+    results.landmarks.forEach(hand => {
+      tips.forEach((tipIndex, idx) => {
+        const p = getPoint(hand[tipIndex]);
+        canvasCtx.beginPath();
+        canvasCtx.arc(p.x, p.y, 5, 0, 2 * Math.PI);
+        canvasCtx.fillStyle = "#ffffff";
+        canvasCtx.shadowColor = colors[idx];
+        canvasCtx.shadowBlur = 15;
+        canvasCtx.fill();
+        canvasCtx.shadowBlur = 0;
+      });
     });
-    video.srcObject = stream;
-    video.onloadedmetadata = () => {
-      video.play();
-      running = true;
-      startWrap.classList.add("gone");
-      modePanel.classList.remove("hidden");
-      loop();
-    };
-  } catch (e) {
-    alert("Kamera erişimi reddedildi veya desteklenmiyor.");
   }
-});
+  
+  canvasCtx.restore();
 
-/* ── MODE BUTTONS ────────────────────────────────── */
-document.querySelectorAll(".mode-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    currentMode = btn.dataset.mode;
-    applyMode();
-  });
-});
-
-/* ── RESIZE ──────────────────────────────────────── */
-window.addEventListener("resize", () => {
-  if (running) {
-    cvs.width  = video.clientWidth;
-    cvs.height = video.clientHeight;
+  if (webcamRunning === true) {
+    window.requestAnimationFrame(predictWebcam);
   }
-});
+}
 </script>
 </body>
 </html>
