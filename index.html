@@ -3,446 +3,781 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>AR Strings — Yüksek Voltaj</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <title>AR Strings v2 — Esmanur Çaça</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    :root { --bg:#020609; --c1:#00ffe0; --c2:#ff2d78; --c3:#ffe100; --c4:#a259ff; --c5:#00aaff; }
-    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-    body { background:var(--bg); font-family:'Space Grotesk',sans-serif; height:100dvh; overflow:hidden; }
+    :root {
+      --bg: #000508;
+      --c1: #00fff0;
+      --c2: #ff1a6c;
+      --c3: #ffee00;
+      --c4: #7b2fff;
+      --c5: #00ff88;
+      --slime: #39ff14;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      font-family: 'Rajdhani', sans-serif;
+      height: 100dvh;
+      overflow: hidden;
+      color: #fff;
+    }
 
     #webcam {
-      position:fixed; inset:0; width:100%; height:100%;
-      object-fit:cover; transform:scaleX(-1);
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
     }
-    #cvs { position:fixed; inset:0; width:100%; height:100%; z-index:2; }
+    #drawCvs {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      z-index: 1; pointer-events: none;
+    }
+    #cvs {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      z-index: 2;
+    }
 
+    /* ── HEADER ── */
     header {
-      position:fixed; top:0; left:0; right:0; z-index:20;
-      display:flex; justify-content:space-between; align-items:center;
-      padding:14px 22px;
-      background:rgba(2,6,9,0.7); backdrop-filter:blur(14px);
-      border-bottom:1px solid rgba(0,255,224,0.12);
+      position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 28px;
+      background: linear-gradient(90deg, rgba(0,5,8,0.92) 0%, rgba(0,255,240,0.04) 100%);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0,255,240,0.12);
     }
-    .logo { display:flex; align-items:center; gap:10px; }
-    .pulse {
-      width:9px; height:9px; border-radius:50%;
-      background:var(--c1); box-shadow:0 0 10px var(--c1);
-      animation:blink 1.8s ease-in-out infinite;
+    .logo {
+      display: flex; align-items: center; gap: 14px;
+    }
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: conic-gradient(from 0deg, var(--c1), var(--c4), var(--c2), var(--c1));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      animation: spin 4s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .logo-text {
+      font-family: 'Orbitron', monospace;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 4px; color: var(--c1);
+      text-shadow: 0 0 20px rgba(0,255,240,0.6);
+    }
+    .logo-sub {
+      font-size: 10px; color: rgba(255,255,255,0.4);
+      letter-spacing: 2px; margin-top: 2px;
+    }
+    .status-pill {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 10px; font-weight: 600;
+      padding: 6px 16px; border-radius: 30px;
+      border: 1px solid rgba(0,255,136,0.4);
+      color: var(--c5);
+      background: rgba(0,255,136,0.06);
+    }
+    .status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--c5);
+      box-shadow: 0 0 8px var(--c5);
+      animation: blink 1.5s ease-in-out infinite;
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
-    .logo-text { font-size:14px; font-weight:700; letter-spacing:3px; color:var(--c1); }
-    .spill {
-      font-size:11px; font-weight:600; letter-spacing:1.5px;
-      padding:5px 14px; border-radius:20px; border:1px solid;
-      transition:all .3s;
-    }
-    .s-load { border-color:#ffaa00; color:#ffaa00; }
-    .s-ok   { border-color:#00ff88; color:#00ff88; }
-    .s-on   { border-color:var(--c1); color:var(--c1); background:rgba(0,255,224,0.08); }
 
-    .strip {
-      position:fixed; bottom:28px; left:50%; transform:translateX(-50%);
-      z-index:20; display:flex; gap:8px;
-      background:rgba(2,6,9,0.78); border:1px solid rgba(255,255,255,0.08);
-      backdrop-filter:blur(16px); padding:8px 14px; border-radius:50px;
-      transition:opacity .4s;
-      flex-wrap: wrap; justify-content: center; width: max-content; max-width: 90vw;
+    /* ── BOTTOM BAR ── */
+    .bottom-bar {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+      z-index: 30;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+      background: rgba(0,5,8,0.88);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(24px);
+      padding: 16px 22px; border-radius: 32px;
+      width: max-content;
+      box-shadow: 0 0 40px rgba(0,255,240,0.08);
     }
-    .strip.hide { opacity:0; pointer-events:none; }
+    .mode-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 9px; letter-spacing: 3px;
+      color: rgba(255,255,255,0.3);
+      align-self: flex-start;
+    }
+    .btns { display: flex; gap: 8px; }
     .mbtn {
-      font-family:'Space Grotesk',sans-serif;
-      font-size:11px; font-weight:600; letter-spacing:1px;
-      padding:7px 16px; border-radius:30px;
-      border:1px solid rgba(255,255,255,0.15);
-      background:transparent; color:rgba(200,232,224,0.55); cursor:pointer; transition:all .2s;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px; font-weight: 600;
+      padding: 9px 20px; border-radius: 30px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: transparent; color: rgba(255,255,255,0.5);
+      cursor: pointer; transition: all 0.25s;
+      letter-spacing: 1px;
     }
-    .mbtn:hover { color:var(--c1); border-color:var(--c1); }
-    .mbtn.on { background:var(--c1); color:#020609; border-color:var(--c1); font-weight:700; }
-    .mbtn[data-m="elec"].on { background:#ffe100; border-color:#ffe100; color:#000; box-shadow:0 0 15px rgba(255,225,0,0.5); }
+    .mbtn:hover { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); }
+    .mbtn.active[data-m="elec"] {
+      background: var(--c3); color: #000;
+      border-color: var(--c3);
+      box-shadow: 0 0 20px rgba(255,238,0,0.5);
+    }
+    .mbtn.active[data-m="ropes"] {
+      background: var(--c1); color: #000;
+      border-color: var(--c1);
+      box-shadow: 0 0 20px rgba(0,255,240,0.5);
+    }
+    .mbtn.active[data-m="slime"] {
+      background: var(--slime); color: #000;
+      border-color: var(--slime);
+      box-shadow: 0 0 20px rgba(57,255,20,0.5);
+    }
+    .mbtn.active[data-m="draw"] {
+      background: var(--c4); color: #fff;
+      border-color: var(--c4);
+      box-shadow: 0 0 20px rgba(123,47,255,0.5);
+    }
+    .controls {
+      display: flex; align-items: center; gap: 14px;
+      width: 100%;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      margin-top: 4px; padding-top: 12px;
+    }
+    .ctrl-label {
+      font-size: 10px; color: var(--c1);
+      letter-spacing: 1px; white-space: nowrap;
+    }
+    input[type=range] {
+      flex: 1; accent-color: var(--c1);
+      cursor: pointer; height: 4px;
+    }
+    .screenshot-btn {
+      background: var(--c2); color: white; border: none;
+      padding: 8px 16px; border-radius: 20px;
+      font-size: 10px; font-weight: bold;
+      cursor: pointer; letter-spacing: 1px;
+      font-family: 'Rajdhani', sans-serif;
+      transition: all 0.2s;
+    }
+    .screenshot-btn:hover { transform: scale(1.05); }
 
-    .glabel {
-      position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
-      z-index:20; font-size:12px; letter-spacing:2px;
-      color:rgba(200,232,224,0.45); pointer-events:none; text-align:center;
+    /* ── HINT BAR ── */
+    #hintBar {
+      position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+      z-index: 30;
+      font-size: 11px; color: rgba(255,255,255,0.5);
+      background: rgba(0,5,8,0.7);
+      padding: 8px 20px; border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.07);
+      letter-spacing: 1px; backdrop-filter: blur(10px);
+      transition: opacity 0.5s;
     }
 
+    /* ── MODE INDICATOR ── */
+    #modeIndicator {
+      position: fixed; top: 80px; right: 25px;
+      z-index: 30;
+      font-family: 'Orbitron', monospace;
+      font-size: 11px; letter-spacing: 3px;
+      color: var(--c1);
+      opacity: 0.6;
+    }
+
+    /* ── OVERLAY ── */
     #overlay {
-      position:fixed; inset:0; z-index:50;
-      display:flex; flex-direction:column;
-      align-items:center; justify-content:center; gap:22px;
-      background:rgba(2,6,9,0.93); backdrop-filter:blur(6px);
-      transition:opacity .6s;
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at 50% 50%, rgba(0,255,240,0.04) 0%, #000508 70%);
+      transition: opacity 0.8s;
     }
-    #overlay.out { opacity:0; pointer-events:none; }
-    .hand-anim { font-size:54px; animation:float 2.8s ease-in-out infinite; }
-    @keyframes float { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-14px) rotate(5deg)} }
-    .intro-title { font-size:22px; font-weight:700; letter-spacing:2px; color:#fff; text-align:center; }
-    .intro-sub { font-size:13px; color:rgba(200,232,224,0.42); text-align:center; max-width:290px; line-height:1.7; }
-    .steps {
-      display:flex; flex-direction:column; gap:8px;
-      background:rgba(0,255,224,0.04); border:1px solid rgba(0,255,224,0.1);
-      border-radius:16px; padding:16px 24px;
+    #overlay.hidden { opacity: 0; pointer-events: none; }
+
+    .overlay-glow {
+      position: absolute; width: 400px; height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,255,240,0.08) 0%, transparent 70%);
+      animation: breathe 3s ease-in-out infinite;
     }
-    .step { font-size:12px; color:rgba(200,232,224,0.5); letter-spacing:.5px; }
-    .step strong { color:var(--c1); }
-    #btnGo {
-      font-family:'Space Grotesk',sans-serif;
-      font-weight:700; font-size:14px; letter-spacing:2px;
-      padding:16px 48px; border-radius:50px; border:none;
-      background:var(--c1); color:#020609; cursor:pointer;
-      box-shadow:0 0 40px rgba(0,255,224,0.3);
-      transition:transform .15s, box-shadow .15s;
+    @keyframes breathe {
+      0%,100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.3); opacity: 1; }
     }
-    #btnGo:disabled { opacity:.35; cursor:not-allowed; }
-    #btnGo:not(:disabled):hover { transform:scale(1.04); box-shadow:0 0 60px rgba(0,255,224,0.5); }
+
+    .overlay-icon {
+      font-size: 64px; margin-bottom: 24px;
+      position: relative; z-index: 1;
+      filter: drop-shadow(0 0 30px rgba(0,255,240,0.8));
+      animation: float 2s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    .overlay-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 22px; font-weight: 900;
+      letter-spacing: 4px; margin-bottom: 8px;
+      position: relative; z-index: 1;
+      background: linear-gradient(90deg, var(--c1), var(--c4));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .overlay-sub {
+      font-size: 13px; color: rgba(255,255,255,0.45);
+      margin-bottom: 40px; text-align: center;
+      max-width: 320px; line-height: 1.7;
+      position: relative; z-index: 1;
+    }
+    #startBtn {
+      padding: 18px 56px; border-radius: 50px;
+      border: none;
+      background: linear-gradient(135deg, var(--c1), var(--c4));
+      color: #000; font-weight: 700; font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 0 40px rgba(0,255,240,0.4);
+      font-family: 'Orbitron', monospace;
+      letter-spacing: 3px;
+      position: relative; z-index: 1;
+      transition: all 0.3s;
+    }
+    #startBtn:hover { transform: scale(1.05); box-shadow: 0 0 60px rgba(0,255,240,0.6); }
+    #startBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .feature-list {
+      display: flex; gap: 12px; margin-bottom: 32px;
+      position: relative; z-index: 1;
+      flex-wrap: wrap; justify-content: center;
+    }
+    .feature-tag {
+      font-size: 10px; letter-spacing: 2px;
+      padding: 5px 14px; border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.5);
+    }
   </style>
 </head>
 <body>
 
 <video id="webcam" autoplay playsinline muted></video>
+<canvas id="drawCvs"></canvas>
 <canvas id="cvs"></canvas>
 
 <header>
   <div class="logo">
-    <div class="pulse" id="dot"></div>
-    <span class="logo-text">AR STRINGS</span>
+    <div class="logo-icon">🖐</div>
+    <div>
+      <div class="logo-text">AR STRINGS v2</div>
+      <div class="logo-sub">ESMANUR ÇAÇA</div>
+    </div>
   </div>
-  <div class="spill s-load" id="pill">YÜKLÜYOR</div>
+  <div class="status-pill">
+    <div class="status-dot"></div>
+    CANLI
+  </div>
 </header>
 
-<div class="strip hide" id="strip">
-  <button class="mbtn on" data-m="5">5 İP</button>
-  <button class="mbtn" data-m="elec">⚡ ELEKTRİK</button>
-  <button class="mbtn" data-m="2">2 İP</button>
-  <button class="mbtn" data-m="web">AĞ</button>
-  <button class="mbtn" data-m="wave">DALGA</button>
+<div id="hintBar">☝️ İki eli kameraya göster → ipler oluşur</div>
+<div id="modeIndicator">ELEC</div>
+
+<div class="bottom-bar" id="uiBar" style="display:none">
+  <div class="mode-label">MOD SEÇ</div>
+  <div class="btns">
+    <button class="mbtn active" data-m="elec">⚡ ELEKTRİK</button>
+    <button class="mbtn" data-m="ropes">🕸 AĞLAR</button>
+    <button class="mbtn" data-m="slime">🟢 SLİME</button>
+    <button class="mbtn" data-m="draw">🎨 ÇİZİM</button>
+  </div>
+  <div class="controls" id="ropeControl">
+    <span class="ctrl-label">İP SAYISI</span>
+    <input type="range" id="ropeSlider" min="5" max="80" value="30"/>
+    <button class="screenshot-btn" id="shotBtn">📸 ÇEK</button>
+  </div>
 </div>
 
-<div class="glabel" id="glabel"></div>
-
 <div id="overlay">
-  <div class="hand-anim">🤲</div>
-  <div class="intro-title">DİJİTAL İP SİMÜLASYONU</div>
-  <div class="intro-sub">İki elinizi kameraya gösterin — parmaklarınız arasında fizik motorlu neon ipler oluşur.</div>
-  <div class="steps">
-    <div class="step"><strong>5 İP</strong> — Her parmak çifti arasında bir ip</div>
-    <div class="step"><strong style="color:#ffe100">ELEKTRİK</strong> — Çoklu, sesli çatırtılı enerji arkları</div>
-    <div class="step"><strong>2 İP</strong> — Başparmak ve işaret parmağı</div>
-    <div class="step"><strong>AĞ</strong> — Tüm parmaklar çapraz bağlı</div>
+  <div class="overlay-glow"></div>
+  <div class="overlay-icon">🖐️</div>
+  <div class="overlay-title">AR STRINGS v2</div>
+  <p class="overlay-sub">İki elini kameraya göster. Parmak uçların arasında fizik motorlu ipler ve slime efektleri oluşsun.</p>
+  <div class="feature-list">
+    <span class="feature-tag">⚡ ELEKTRİK</span>
+    <span class="feature-tag">🟢 SLİME</span>
+    <span class="feature-tag">🕸 AĞLAR</span>
+    <span class="feature-tag">🎨 ÇİZİM</span>
+    <span class="feature-tag">✊ KÜRE</span>
   </div>
-  <button id="btnGo" disabled>KAMERAYI AÇ</button>
+  <button id="startBtn" disabled>BAŞLAT</button>
 </div>
 
 <script type="module">
-import { HandLandmarker, FilesetResolver } 
+import { HandLandmarker, FilesetResolver, DrawingUtils }
   from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
 
 const video   = document.getElementById("webcam");
+const drawCvs = document.getElementById("drawCvs");
+const dctx    = drawCvs.getContext("2d");
 const cvs     = document.getElementById("cvs");
 const ctx     = cvs.getContext("2d");
-const pill    = document.getElementById("pill");
-const dot     = document.getElementById("dot");
-const overlay = document.getElementById("overlay");
-const strip   = document.getElementById("strip");
-const glabel  = document.getElementById("glabel");
-const btnGo   = document.getElementById("btnGo");
 
-// MediaPipe finger tip indices
-const TIPS   = [4, 8, 12, 16, 20];
-const COLORS = ["#00ffe0","#ff2d78","#ffe100","#a259ff","#00aaff"];
+// ── PARMAK UÇLARI & EKLEM BAĞLANTILARI ──────────────────────────────
+// 21 landmark: 0=bilek, 1-4=başparmak, 5-8=işaret, 9-12=orta, 13-16=yüzük, 17-20=serçe
+const FINGER_TIPS   = [4, 8, 12, 16, 20];
+const FINGER_MID    = [3, 7, 11, 15, 19];
+const FINGER_BASE   = [2, 6, 10, 14, 18];
+const KNUCKLES      = [1, 5, 9, 13, 17];
+const WRIST         = 0;
 
-let mode = "5";
-let handLM, running = false, lastTime = -1, globalHue = 0;
+// İskelet bağlantıları (tüm parmak segmentleri)
+const SKELETON_CONNECTIONS = [
+  // Başparmak
+  [0,1],[1,2],[2,3],[3,4],
+  // İşaret
+  [0,5],[5,6],[6,7],[7,8],
+  // Orta
+  [0,9],[9,10],[10,11],[11,12],
+  // Yüzük
+  [0,13],[13,14],[14,15],[15,16],
+  // Serçe
+  [0,17],[17,18],[18,19],[19,20],
+  // Avuç içi çerçevesi
+  [5,9],[9,13],[13,17],[0,5],[0,17]
+];
 
-/* ── AUDIO SYNTH (VIZZT / ELEKTRİK SESİ) ─── */
-let audioCtx, masterGain, sparkOsc, sparkGain;
-function initElectricSound() {
-  if (audioCtx) return;
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  audioCtx = new AudioContext();
-  
-  masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0;
+const COLORS = ["#00fff0","#ff1a6c","#ffee00","#7b2fff","#00ff88","#ff8800","#00aaff"];
+const SLIME_COLORS = ["#39ff14","#00ff88","#a8ff3e","#7fff00","#adff2f"];
+
+let mode = "elec", ropeCount = 30, running = false, lastTime = -1;
+let handLM, globalHue = 0, prevPos = {};
+
+// ── AUDIO ────────────────────────────────────────────────────────────
+let audioCtx, masterGain, buzzOsc;
+function initAudio() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  audioCtx = new AC();
+  masterGain = audioCtx.createGain(); masterGain.gain.value = 0;
   masterGain.connect(audioCtx.destination);
-
-  // Ana şebeke vızıltısı (Low Hum)
-  const humOsc = audioCtx.createOscillator();
-  humOsc.type = "sawtooth";
-  humOsc.frequency.value = 55; // 55Hz
-  humOsc.connect(masterGain);
-  humOsc.start();
-
-  // Çatırtı / Kıvılcım sesi (High Frequency Crackle)
-  sparkOsc = audioCtx.createOscillator();
-  sparkOsc.type = "square";
-  
-  const sparkFilter = audioCtx.createBiquadFilter();
-  sparkFilter.type = "highpass";
-  sparkFilter.frequency.value = 1500;
-  
-  sparkGain = audioCtx.createGain();
-  sparkGain.gain.value = 0;
-  
-  sparkOsc.connect(sparkFilter);
-  sparkFilter.connect(sparkGain);
-  sparkGain.connect(masterGain);
-  sparkOsc.start();
-
-  // Çatırtıyı rastgele zamanlarda tetikleyen döngü
-  setInterval(() => {
-    if (masterGain.gain.value > 0.05 && Math.random() > 0.3) {
-      // Rastgele frekans atlamaları (vızzt efekti)
-      sparkOsc.frequency.setValueAtTime(200 + Math.random() * 2000, audioCtx.currentTime);
-      sparkGain.gain.setValueAtTime(0.05 + Math.random() * 0.15, audioCtx.currentTime);
-      sparkGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-    }
-  }, 40);
+  buzzOsc = audioCtx.createOscillator(); buzzOsc.type = "sawtooth"; buzzOsc.frequency.value = 60;
+  const filter = audioCtx.createBiquadFilter(); filter.type = "lowpass"; filter.frequency.value = 900;
+  buzzOsc.connect(filter); filter.connect(masterGain); buzzOsc.start();
 }
-
-function setAudioState(isActive) {
+function playVizzt(vol, pitch) {
   if (!audioCtx) return;
-  const targetVol = isActive ? 0.25 : 0;
-  masterGain.gain.setTargetAtTime(targetVol, audioCtx.currentTime, 0.1);
+  masterGain.gain.setTargetAtTime(Math.min(vol, 0.4), audioCtx.currentTime, 0.08);
+  buzzOsc.frequency.setTargetAtTime(55 + pitch * 120, audioCtx.currentTime, 0.08);
 }
 
-
-/* ── VERLET ROPE FİZİK MOTORU ────────────── */
+// ── VERLEt ROPE PHYSICS ───────────────────────────────────────────────
 class Rope {
-  constructor(n, color) {
-    this.n = n; this.color = color; this.rest = 10;
-    this.pts = Array.from({length:n}, () => ({x:0,y:0,ox:0,oy:0}));
+  constructor(n, col) {
+    this.n = n; this.col = col;
+    this.pts = Array.from({length: n}, () => ({x: 0, y: 0, ox: 0, oy: 0}));
   }
   update(x0, y0, x1, y1) {
     const p = this.pts, n = this.n;
-    p[0].x=x0; p[0].y=y0; p[n-1].x=x1; p[n-1].y=y1;
-    for (let i=1; i<n-1; i++) {
-      let vx=(p[i].x-p[i].ox)*0.93, vy=(p[i].y-p[i].oy)*0.93+1.3;
-      p[i].ox=p[i].x; p[i].oy=p[i].y;
-      p[i].x+=vx; p[i].y+=vy;
+    p[0].x = x0; p[0].y = y0;
+    p[n-1].x = x1; p[n-1].y = y1;
+    for (let i = 1; i < n-1; i++) {
+      let vx = (p[i].x - p[i].ox) * 0.93;
+      let vy = (p[i].y - p[i].oy) * 0.93 + 0.8;
+      p[i].ox = p[i].x; p[i].oy = p[i].y;
+      p[i].x += vx; p[i].y += vy;
     }
-    for (let it=0; it<14; it++) {
-      for (let i=0; i<n-1; i++) {
-        const a=p[i], b=p[i+1];
-        const dx=b.x-a.x, dy=b.y-a.y;
-        const d=Math.sqrt(dx*dx+dy*dy)||1;
-        const c=(this.rest-d)/d/2;
-        const ox=dx*c, oy=dy*c;
-        if (i!==0)   {a.x-=ox; a.y-=oy;}
-        if (i+1!==n-1) {b.x+=ox; b.y+=oy;}
+    for (let it = 0; it < 10; it++) {
+      for (let i = 0; i < n-1; i++) {
+        let dx = p[i+1].x - p[i].x, dy = p[i+1].y - p[i].y;
+        let d = Math.sqrt(dx*dx + dy*dy) || 1;
+        let diff = (10 - d) / d / 2;
+        if (i !== 0)   { p[i].x   -= dx * diff; p[i].y   -= dy * diff; }
+        if (i+1 !== n-1) { p[i+1].x += dx * diff; p[i+1].y += dy * diff; }
       }
     }
   }
-  
-  draw(col, w=3.5, isElectric=false) {
-    const p=this.pts, n=this.n;
-    for (let i=0; i<n-1; i++) {
-      const t=i/n;
-      let c = col || this.color;
-      if (mode==="wave") c=`hsl(${(globalHue+t*180)%360},100%,65%)`;
-      if (isElectric) c = Math.random() > 0.8 ? "#ffffff" : "#ffe100"; // Elektrik modunda sarı-beyaz patlamalar
 
-      ctx.beginPath(); ctx.moveTo(p[i].x,p[i].y); ctx.lineTo(p[i+1].x,p[i+1].y);
-      ctx.strokeStyle=c; ctx.lineWidth=w; ctx.lineCap="round";
-      ctx.shadowColor=c; ctx.shadowBlur= isElectric ? 25 : 20; 
+  drawRope(isElec, isSlime, slimeRadius) {
+    const pts = this.pts;
+    if (isElec) {
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < this.n; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.strokeStyle = Math.random() > 0.85 ? "#fff" : "#ffee00";
+      ctx.lineWidth = 4; ctx.shadowBlur = 18; ctx.shadowColor = "#ffee00";
       ctx.stroke();
-    }
-
-    // Elektrik modundaysa ana ipin etrafına titreyen ince arklar (kablolar) çiz
-    if (isElectric) {
-      for (let j = 0; j < 3; j++) { // 3 ekstra çatırtılı dalga
-        ctx.beginPath();
-        for (let i=0; i<n; i++) {
-          let jitterX = (Math.random() - 0.5) * 18;
-          let jitterY = (Math.random() - 0.5) * 18;
-          // Başlangıç ve bitiş noktalarını parmaklara sabitle
-          if (i === 0 || i === n-1) { jitterX = 0; jitterY = 0; }
-          
-          if(i===0) ctx.moveTo(p[i].x + jitterX, p[i].y + jitterY);
-          else ctx.lineTo(p[i].x + jitterX, p[i].y + jitterY);
+      if (Math.random() > 0.7) {
+        ctx.beginPath(); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(255,255,255,0.6)";
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < this.n; i++) {
+          ctx.lineTo(pts[i].x + (Math.random()-0.5)*20, pts[i].y + (Math.random()-0.5)*20);
         }
-        ctx.strokeStyle = Math.random() > 0.5 ? "#00ffe0" : "#ffffff";
-        ctx.lineWidth = Math.random() * 2;
-        ctx.shadowBlur = 10;
         ctx.stroke();
       }
+      ctx.shadowBlur = 0;
+    } else if (isSlime) {
+      // Slime: thick gooey lines with glow
+      const t = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < this.n - 1; i++) {
+        const mx = (pts[i].x + pts[i+1].x) / 2;
+        const my = (pts[i].y + pts[i+1].y) / 2;
+        ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+      }
+      ctx.lineTo(pts[this.n-1].x, pts[this.n-1].y);
+      ctx.strokeStyle = this.col;
+      ctx.lineWidth = slimeRadius * 2.5;
+      ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.shadowBlur = 20; ctx.shadowColor = this.col;
+      ctx.globalAlpha = 0.82;
+      ctx.stroke();
+      // Inner highlight
+      ctx.strokeStyle = "rgba(220,255,200,0.35)";
+      ctx.lineWidth = slimeRadius * 0.8;
+      ctx.stroke();
+      ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < this.n; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.strokeStyle = this.col;
+      ctx.lineWidth = 2; ctx.shadowBlur = 8; ctx.shadowColor = this.col;
+      ctx.stroke(); ctx.shadowBlur = 0;
     }
-    ctx.shadowBlur=0;
+  }
+}
+const ropePool = Array.from({length:120}, (_, i) => new Rope(20, COLORS[i % COLORS.length]));
+// Separate slime ropes with slime colors
+const slimePool = Array.from({length:120}, (_, i) => new Rope(16, SLIME_COLORS[i % SLIME_COLORS.length]));
+
+// ── EL ISKELETİ ÇİZİMİ ───────────────────────────────────────────────
+function drawHandSkeleton(lm, W, H) {
+  const px = (lm, idx) => ({ x: lm[idx].x * W, y: lm[idx].y * H });
+  const time = performance.now();
+
+  // Bağlantı çizgileri
+  for (const [a, b] of SKELETON_CONNECTIONS) {
+    const pa = px(lm, a), pb = px(lm, b);
+    const grad = ctx.createLinearGradient(pa.x, pa.y, pb.x, pb.y);
+    grad.addColorStop(0, "rgba(0,255,240,0.9)");
+    grad.addColorStop(1, "rgba(0,255,136,0.7)");
+    ctx.beginPath();
+    ctx.moveTo(pa.x, pa.y);
+    ctx.lineTo(pb.x, pb.y);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2.5;
+    ctx.shadowBlur = 10; ctx.shadowColor = "#00fff0";
+    ctx.stroke(); ctx.shadowBlur = 0;
+  }
+
+  // Eklem noktaları (landmark circles)
+  for (let i = 0; i < 21; i++) {
+    const p = px(lm, i);
+    const isKnuckle = KNUCKLES.includes(i);
+    const isTip = FINGER_TIPS.includes(i);
+    const isWrist = i === 0;
+
+    const r = isWrist ? 8 : isTip ? 7 : isKnuckle ? 5 : 4;
+    const innerColor = isTip ? "#ff1a6c" : isKnuckle ? "#ffee00" : "#00fff0";
+    const outerColor = isTip ? "rgba(255,26,108,0.4)" : "rgba(0,255,240,0.3)";
+
+    // Outer glow ring
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r + 3, 0, Math.PI * 2);
+    ctx.fillStyle = outerColor;
+    ctx.shadowBlur = 15; ctx.shadowColor = innerColor;
+    ctx.fill();
+
+    // Inner dot
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = innerColor;
+    ctx.shadowBlur = 20; ctx.shadowColor = innerColor;
+    ctx.fill(); ctx.shadowBlur = 0;
+
+    // Pulse ring on tips
+    if (isTip) {
+      const pulse = (Math.sin(time * 0.006 + i) * 0.5 + 0.5);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r + 4 + pulse * 6, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255,26,108,${0.5 * (1 - pulse)})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
   }
 }
 
-/* ── ROPE POOLS ──────────────────────────── */
-const ropePool = COLORS.map(c => new Rope(26, c));
-const webPool  = Array.from({length:25}, () => new Rope(16,"#fff"));
-
-/* ── PARTICLES (Kıvılcımlar) ─────────────── */
-const pfx = [];
-function spawnPfx(x,y,col, amount=2) {
-  for (let i=0;i<amount;i++) pfx.push({
-    x,y, vx:(Math.random()-.5)*6, vy:(Math.random()-.5)*6-1,
-    life:1, col, r:Math.random()*3+.5
-  });
-}
-function drawPfx() {
-  for (let i=pfx.length-1;i>=0;i--) {
-    const p=pfx[i];
-    p.x+=p.vx; p.y+=p.vy; p.vy+=0.15; p.life-=0.05;
-    if (p.life<=0) { pfx.splice(i,1); continue; }
-    ctx.globalAlpha=p.life;
-    ctx.beginPath(); ctx.arc(p.x,p.y,p.r*p.life,0,Math.PI*2);
-    ctx.fillStyle=p.col; ctx.shadowColor=p.col; ctx.shadowBlur=12; ctx.fill();
+// ── EL KAPALI MI (YUMRUK) ─────────────────────────────────────────────
+function isFist(lm) {
+  let closedCount = 0;
+  // Her parmak için: uç, orta elin tabanına göre kapalı mı?
+  for (let i = 0; i < 5; i++) {
+    const tip = lm[FINGER_TIPS[i]];
+    const base = lm[KNUCKLES[i]];
+    const wrist = lm[WRIST];
+    const dTipWrist = Math.hypot(tip.x - wrist.x, tip.y - wrist.y);
+    const dBaseWrist = Math.hypot(base.x - wrist.x, base.y - wrist.y);
+    if (dTipWrist < dBaseWrist * 1.1) closedCount++;
   }
-  ctx.globalAlpha=1; ctx.shadowBlur=0;
+  return closedCount >= 4;
 }
 
-/* ── NODE DOT ────────────────────────────── */
-function node(x,y,col,big=false) {
-  ctx.beginPath(); ctx.arc(x,y,big?9:6,0,Math.PI*2);
-  ctx.fillStyle="#fff"; ctx.shadowColor=col; ctx.shadowBlur=24; ctx.fill();
-  ctx.shadowBlur=0;
+// ── SLIME KÜRE ÇİZ ───────────────────────────────────────────────────
+function drawSlimeSphere(cx, cy, r) {
+  // Dış glow
+  const outerGrad = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r * 1.8);
+  outerGrad.addColorStop(0, "rgba(57,255,20,0.15)");
+  outerGrad.addColorStop(1, "transparent");
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 1.8, 0, Math.PI * 2);
+  ctx.fillStyle = outerGrad;
+  ctx.fill();
+
+  // Ana küre
+  const grad = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, r * 0.1, cx, cy, r);
+  grad.addColorStop(0, "rgba(180,255,150,0.95)");
+  grad.addColorStop(0.4, "rgba(57,255,20,0.9)");
+  grad.addColorStop(0.8, "rgba(0,200,50,0.85)");
+  grad.addColorStop(1, "rgba(0,100,20,0.7)");
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.shadowBlur = 30; ctx.shadowColor = "#39ff14";
+  ctx.fill(); ctx.shadowBlur = 0;
+
+  // Parlama highlight
+  const hilite = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.4, 0, cx - r * 0.35, cy - r * 0.4, r * 0.45);
+  hilite.addColorStop(0, "rgba(255,255,255,0.7)");
+  hilite.addColorStop(1, "transparent");
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = hilite;
+  ctx.fill();
+
+  // Damla efekti (slime blobs)
+  for (let i = 0; i < 5; i++) {
+    const angle = (performance.now() * 0.001 + i * 1.26) % (Math.PI * 2);
+    const bx = cx + Math.cos(angle) * r * 0.75;
+    const by = cy + Math.sin(angle) * r * 0.85;
+    const br = r * 0.18 + Math.sin(performance.now() * 0.003 + i) * r * 0.06;
+    ctx.beginPath();
+    ctx.arc(bx, by, br, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(57,255,20,0.6)";
+    ctx.shadowBlur = 12; ctx.shadowColor = "#39ff14";
+    ctx.fill(); ctx.shadowBlur = 0;
+  }
 }
 
-/* ── LOAD MODEL ──────────────────────────── */
-async function loadModel() {
+// ── SLIME İP ─────────────────────────────────────────────────────────
+function drawSlimeBlob(p0, p1, thickness) {
+  const dx = p1.x - p0.x, dy = p1.y - p0.y;
+  const len = Math.sqrt(dx*dx + dy*dy) || 1;
+  const nx = -dy/len * thickness, ny = dx/len * thickness;
+
+  // Ana gövde
+  ctx.beginPath();
+  ctx.moveTo(p0.x + nx, p0.y + ny);
+  ctx.quadraticCurveTo((p0.x+p1.x)/2 + nx*0.5, (p0.y+p1.y)/2 + ny*0.5, p1.x + nx*0.7, p1.y + ny*0.7);
+  ctx.lineTo(p1.x - nx*0.7, p1.y - ny*0.7);
+  ctx.quadraticCurveTo((p0.x+p1.x)/2 - nx*0.5, (p0.y+p1.y)/2 - ny*0.5, p0.x - nx, p0.y - ny);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(57,255,20,0.7)";
+  ctx.shadowBlur = 15; ctx.shadowColor = "#39ff14";
+  ctx.fill(); ctx.shadowBlur = 0;
+}
+
+// ── SİSTEM YÜKLE ─────────────────────────────────────────────────────
+async function load() {
   const v = await FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
   );
   handLM = await HandLandmarker.createFromOptions(v, {
     baseOptions: {
       modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-      delegate: "GPU",
+      delegate: "GPU"
     },
-    runningMode:"VIDEO", numHands:2,
-    minHandDetectionConfidence:.55, minTrackingConfidence:.55,
+    runningMode: "VIDEO",
+    numHands: 2,
+    minHandDetectionConfidence: 0.55,
+    minHandPresenceConfidence: 0.5,
+    minTrackingConfidence: 0.5
   });
-  pill.textContent="HAZIR"; pill.className="spill s-ok";
-  dot.style.cssText="width:9px;height:9px;border-radius:50%;background:#00ff88;box-shadow:0 0 10px #00ff88";
-  btnGo.disabled=false;
+  document.getElementById("startBtn").disabled = false;
 }
-loadModel();
+load();
 
-/* ── LOOP ────────────────────────────────── */
+// ── ANA DÖNGÜ ─────────────────────────────────────────────────────────
 function loop() {
   if (!running) return;
-  if (video.readyState>=2 && lastTime!==video.currentTime) {
-    lastTime=video.currentTime;
-    cvs.width=video.clientWidth; cvs.height=video.clientHeight;
-    const W=cvs.width, H=cvs.height;
-    ctx.clearRect(0,0,W,H);
-    ctx.save(); ctx.translate(W,0); ctx.scale(-1,1);
-    globalHue=(globalHue+1.2)%360;
+  if (video.readyState >= 2 && lastTime !== video.currentTime) {
+    lastTime = video.currentTime;
+    const W = video.clientWidth, H = video.clientHeight;
+    cvs.width = W; cvs.height = H;
+    drawCvs.width = W; drawCvs.height = H;
+    ctx.clearRect(0, 0, W, H);
 
-    const res=handLM.detectForVideo(video, performance.now());
-    const hands=res.landmarks;
-    let isActive = false; // Ses kontrolü için
+    // Ghosting for draw canvas
+    dctx.globalCompositeOperation = "destination-out";
+    dctx.fillStyle = "rgba(0,0,0,0.04)";
+    dctx.fillRect(0, 0, W, H);
+    dctx.globalCompositeOperation = "source-over";
 
-    if (hands && hands.length>=2) {
-      isActive = true;
-      const h0=hands[0], h1=hands[1];
-      glabel.textContent="İKİ EL ALGILANDI";
-      pill.textContent="AKTİF"; pill.className="spill s-on";
+    // Mirror transform
+    ctx.save(); ctx.translate(W, 0); ctx.scale(-1, 1);
+    dctx.save(); dctx.translate(W, 0); dctx.scale(-1, 1);
 
-      if (mode==="5" || mode==="wave" || mode==="elec") {
-        const isElec = (mode === "elec");
-        TIPS.forEach((tip,ri) => {
-          const ax=h0[tip].x*W, ay=h0[tip].y*H;
-          const bx=h1[tip].x*W, by=h1[tip].y*H;
-          ropePool[ri].update(ax,ay,bx,by);
-          ropePool[ri].draw(null, isElec ? 5 : 3.5, isElec);
-          node(ax,ay, isElec ? "#ffe100" : COLORS[ri]); 
-          node(bx,by, isElec ? "#ffe100" : COLORS[ri]);
-          spawnPfx(ax,ay, isElec ? "#ffffff" : COLORS[ri], isElec ? 4 : 2); 
-          spawnPfx(bx,by, isElec ? "#ffffff" : COLORS[ri], isElec ? 4 : 2);
+    const res = handLM.detectForVideo(video, performance.now());
+    let vol = 0, pitch = 0;
+
+    if (res.landmarks && res.landmarks.length > 0) {
+      // İskelet çiz
+      res.landmarks.forEach(lm => drawHandSkeleton(lm, W, H));
+
+      if (mode === "draw") {
+        res.landmarks.forEach((h, hi) => {
+          const extended = h[8].y < h[6].y - 0.04 && h[12].y > h[10].y;
+          const x = h[8].x * W, y = h[8].y * H, pk = "h" + hi;
+          if (extended) {
+            if (prevPos[pk]) {
+              dctx.beginPath();
+              dctx.moveTo(prevPos[pk].x, prevPos[pk].y);
+              dctx.lineTo(x, y);
+              dctx.strokeStyle = `hsl(${(globalHue + hi * 120) % 360},100%,55%)`;
+              dctx.lineWidth = 14; dctx.lineCap = "round"; dctx.stroke();
+            }
+            prevPos[pk] = {x, y};
+          } else { delete prevPos[pk]; }
         });
+      } else if (mode === "slime") {
+        if (res.landmarks.length === 2) {
+          const h0 = res.landmarks[0], h1 = res.landmarks[1];
+          const dist = Math.hypot(h0[9].x - h1[9].x, h0[9].y - h1[9].y);
 
-      } else if (mode==="2") {
-        [[0,4],[1,8]].forEach(([ri,tip]) => {
-          const ax=h0[tip].x*W, ay=h0[tip].y*H;
-          const bx=h1[tip].x*W, by=h1[tip].y*H;
-          ropePool[ri].update(ax,ay,bx,by);
-          ropePool[ri].draw(null,5.5);
-          node(ax,ay,COLORS[ri],true); node(bx,by,COLORS[ri],true);
-          spawnPfx(ax,ay,COLORS[ri]); spawnPfx(bx,by,COLORS[ri]);
-        });
+          const fist0 = isFist(h0), fist1 = isFist(h1);
 
-      } else if (mode==="web") {
-        let wi=0;
-        for (let a=0;a<TIPS.length;a++) {
-          for (let b=0;b<TIPS.length;b++) {
-            if (wi>=webPool.length) break;
-            const ax=h0[TIPS[a]].x*W, ay=h0[TIPS[a]].y*H;
-            const bx=h1[TIPS[b]].x*W, by=h1[TIPS[b]].y*H;
-            const col=`hsl(${(globalHue+wi*36)%360},100%,62%)`;
-            webPool[wi].color=col;
-            webPool[wi].update(ax,ay,bx,by);
-            webPool[wi].draw(col,2);
-            wi++;
+          if (fist0) {
+            // Yumruk = Küre
+            const cx = h0[9].x * W, cy = h0[9].y * H;
+            drawSlimeSphere(cx, cy, 80);
+          }
+          if (fist1) {
+            const cx = h1[9].x * W, cy = h1[9].y * H;
+            drawSlimeSphere(cx, cy, 80);
+          }
+
+          if (!fist0 && !fist1) {
+            // Slime ipler (kalın, cıvık)
+            const slimeCount = Math.min(ropeCount, 60);
+            const thickness = Math.max(5, 18 - dist * 20); // yakın = kalın
+
+            for (let i = 0; i < slimeCount; i++) {
+              const t = FINGER_TIPS[i % 5];
+              const p0 = { x: h0[t].x * W, y: h0[t].y * H };
+              const p1 = { x: h1[t].x * W, y: h1[t].y * H };
+              slimePool[i].update(p0.x, p0.y, p1.x, p1.y);
+              slimePool[i].drawRope(false, true, thickness);
+            }
+
+            // Parmak uçları arası slime damlaları
+            for (let i = 0; i < 5; i++) {
+              const p0 = {x: h0[FINGER_TIPS[i]].x * W, y: h0[FINGER_TIPS[i]].y * H};
+              const p1 = {x: h1[FINGER_TIPS[i]].x * W, y: h1[FINGER_TIPS[i]].y * H};
+              const r = thickness * 1.4;
+              // Uç toplar
+              ctx.beginPath(); ctx.arc(p0.x, p0.y, r, 0, Math.PI*2);
+              ctx.fillStyle = "#39ff14"; ctx.shadowBlur = 20; ctx.shadowColor = "#39ff14";
+              ctx.fill();
+              ctx.beginPath(); ctx.arc(p1.x, p1.y, r, 0, Math.PI*2);
+              ctx.fill(); ctx.shadowBlur = 0;
+            }
+          }
+        } else if (res.landmarks.length === 1) {
+          const h0 = res.landmarks[0];
+          if (isFist(h0)) {
+            drawSlimeSphere(h0[9].x * W, h0[9].y * H, 80);
           }
         }
-        TIPS.forEach((tip,ri) => {
-          node(h0[tip].x*W, h0[tip].y*H, COLORS[ri]);
-          node(h1[tip].x*W, h1[tip].y*H, COLORS[ri]);
-        });
+      } else if (res.landmarks.length === 2) {
+        const h0 = res.landmarks[0], h1 = res.landmarks[1];
+        const dist = Math.hypot(h0[9].x - h1[9].x, h0[9].y - h1[9].y);
+
+        if (mode === "elec") { vol = 0.28; pitch = 1 - dist; }
+
+        const isElec = mode === "elec";
+        for (let i = 0; i < ropeCount; i++) {
+          const t = FINGER_TIPS[i % 5];
+          const p0 = { x: h0[t].x * W, y: h0[t].y * H };
+          const p1 = { x: h1[t].x * W, y: h1[t].y * H };
+          ropePool[i].update(p0.x, p0.y, p1.x, p1.y);
+          ropePool[i].drawRope(isElec, false, 0);
+        }
+
+        // TAM BAĞLANTI AĞI (ropes modunda tüm eklemler arası)
+        if (mode === "ropes") {
+          const allTips0 = [0, 4, 8, 12, 16, 20].map(i => ({x: h0[i].x*W, y: h0[i].y*H}));
+          const allTips1 = [0, 4, 8, 12, 16, 20].map(i => ({x: h1[i].x*W, y: h1[i].y*H}));
+          for (let a = 0; a < allTips0.length; a++) {
+            for (let b = 0; b < allTips1.length; b++) {
+              const idx = a * allTips0.length + b;
+              if (idx < 80) {
+                ropePool[ropeCount + idx].update(allTips0[a].x, allTips0[a].y, allTips1[b].x, allTips1[b].y);
+                ropePool[ropeCount + idx].drawRope(false, false, 0);
+              }
+            }
+          }
+        }
       }
-
-    } else if (hands && hands.length===1) {
-      isActive = true;
-      const h=hands[0];
-      glabel.textContent="TEK EL — İKİ ELİ GÖSTER";
-      pill.textContent="HAZIR"; pill.className="spill s-ok";
-      const tx=h[4].x*W, ty=h[4].y*H;
-      const isElec = (mode === "elec");
-
-      [8,12,16,20].forEach((tip,i) => {
-        const fx=h[tip].x*W, fy=h[tip].y*H;
-        ropePool[i].update(tx,ty,fx,fy);
-        ropePool[i].draw(null, isElec ? 4 : 3, isElec);
-        node(fx,fy, isElec ? "#ffe100" : COLORS[i+1]); 
-        spawnPfx(fx,fy, isElec ? "#fff" : COLORS[i+1], isElec ? 3 : 2);
-      });
-      node(tx,ty, isElec ? "#ffe100" : COLORS[0],true); 
-      spawnPfx(tx,ty, isElec ? "#fff" : COLORS[0], isElec ? 4 : 2);
-    } else {
-      glabel.textContent="ELLERİNİZİ KAMERAYA GÖSTERİN";
-      pill.textContent="HAZIR"; pill.className="spill s-ok";
     }
 
-    // Elektrik modundaysa ve eller ekrandaysa sesi aç, eller giderse veya mod değişirse sesi kıs
-    setAudioState(isActive && mode === "elec");
-
-    drawPfx();
-    ctx.restore();
+    playVizzt(vol, pitch);
+    globalHue = (globalHue + 2) % 360;
+    ctx.restore(); dctx.restore();
   }
   requestAnimationFrame(loop);
 }
 
-/* ── CAM & INIT ──────────────────────────── */
-btnGo.addEventListener("click", async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:"user", width:{ideal:1280}, height:{ideal:720}}
-    });
-    video.srcObject=stream;
-    video.onloadedmetadata=() => {
-      video.play(); running=true;
-      overlay.classList.add("out");
-      strip.classList.remove("hide");
-      initElectricSound(); // Ses sistemini başlat
-      loop();
-    };
-  } catch { alert("Kamera erişimi reddedildi."); }
-});
-
-/* ── MODE BTNS ───────────────────────────── */
-document.querySelectorAll(".mbtn").forEach(b => {
-  b.addEventListener("click", () => {
-    document.querySelectorAll(".mbtn").forEach(x=>x.classList.remove("on"));
-    b.classList.add("on"); mode=b.dataset.m;
+// ── BAŞLAT ───────────────────────────────────────────────────────────
+document.getElementById("startBtn").onclick = () => {
+  navigator.mediaDevices.getUserMedia({video:{facingMode:"user", width:1280, height:720}}).then(s => {
+    video.srcObject = s; video.play(); running = true;
+    document.getElementById("overlay").classList.add("hidden");
+    document.getElementById("uiBar").style.display = "flex";
+    document.getElementById("hintBar").style.display = "block";
+    initAudio(); loop();
   });
+};
+
+// ── MOD DEĞİŞTİR ─────────────────────────────────────────────────────
+document.querySelectorAll(".mbtn").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".mbtn").forEach(x => x.classList.remove("active"));
+  b.classList.add("active"); mode = b.dataset.m;
+  document.getElementById("modeIndicator").textContent = b.dataset.m.toUpperCase();
+  const isDrawMode = mode === "draw";
+  document.getElementById("ropeControl").style.visibility = isDrawMode ? "hidden" : "visible";
+
+  const hints = {
+    elec: "⚡ İki eli kameraya göster → Elektrik arkları!",
+    ropes: "🕸 İki el → Tam bağlantı ağı",
+    slime: "🟢 İki el → Slime | ✊ Yumruk → Küre",
+    draw: "☝️ İşaret parmağı uzat → Hava çizimi"
+  };
+  document.getElementById("hintBar").textContent = hints[mode] || "";
 });
 
-window.addEventListener("resize", () => {
-  if (running) { cvs.width=video.clientWidth; cvs.height=video.clientHeight; }
-});
+// ── SLIDER ───────────────────────────────────────────────────────────
+document.getElementById("ropeSlider").oninput = e => ropeCount = parseInt(e.target.value);
+
+// ── EKRAN GÖRÜNTÜSÜ ──────────────────────────────────────────────────
+document.getElementById("shotBtn").onclick = () => {
+  const fc = document.createElement("canvas");
+  fc.width = cvs.width; fc.height = cvs.height;
+  const fctx = fc.getContext("2d");
+  fctx.translate(cvs.width, 0); fctx.scale(-1, 1);
+  fctx.drawImage(video, 0, 0, fc.width, fc.height);
+  fctx.translate(cvs.width, 0); fctx.scale(-1, 1);
+  fctx.drawImage(drawCvs, 0, 0);
+  fctx.drawImage(cvs, 0, 0);
+  const link = document.createElement("a");
+  link.download = "ar-strings-v2.png";
+  link.href = fc.toDataURL(); link.click();
+};
 </script>
 </body>
 </html>
