@@ -3,281 +3,499 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Dijital İp Oyunu (AR Strings)</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <title>AR İp Simülasyonu</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #050a0e;
-      --teal: #00e5cc;
-      --pink: #ff4081;
-      --text: #cce8e0;
+      --bg: #03070a;
+      --c1: #00ffe0;
+      --c2: #ff2d78;
+      --c3: #ffe100;
+      --c4: #a259ff;
+      --text: #c8e8e0;
+      --panel: rgba(3,10,15,0.88);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      background: var(--bg); color: var(--text);
-      font-family: 'Space Mono', monospace;
-      height: 100vh; overflow: hidden;
-      display: flex; flex-direction: column;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
+    /* ── HEADER ─────────────────────────────────── */
     header {
-      padding: 15px; background: rgba(5, 10, 14, 0.8);
-      position: absolute; top: 0; width: 100%; z-index: 10;
-      display: flex; justify-content: space-between; align-items: center;
-      border-bottom: 1px solid rgba(0, 229, 204, 0.3);
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 30;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      background: var(--panel);
+      border-bottom: 1px solid rgba(0,255,224,0.18);
+      backdrop-filter: blur(8px);
     }
-    h1 { font-size: 16px; color: var(--teal); letter-spacing: 2px; text-shadow: 0 0 10px rgba(0,229,204,0.5); }
-    
-    .status { font-size: 12px; color: #69ff47; }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--c1);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(0,255,224,0.6); }
+      50% { box-shadow: 0 0 0 8px rgba(0,255,224,0); }
+    }
+    .logo-text { font-size: 15px; font-weight: 700; letter-spacing: 3px; color: var(--c1); }
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid;
+    }
+    .badge-ready { border-color: #00ff88; color: #00ff88; }
+    .badge-loading { border-color: #ffaa00; color: #ffaa00; }
 
-    .canvas-wrap {
-      position: relative; width: 100%; height: 100%;
+    /* ── CANVAS AREA ─────────────────────────────── */
+    .scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    #webcam, #cvs {
+      position: absolute;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    #webcam { transform: scaleX(-1); }
+    #cvs { z-index: 2; }
+
+    /* ── MODE PANEL (bottom) ────────────────────── */
+    .mode-panel {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: var(--panel);
+      padding: 10px 16px;
+      border-radius: 50px;
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(12px);
+      transition: opacity 0.4s;
+    }
+    .mode-panel.hidden { opacity: 0; pointer-events: none; }
+
+    .mode-btn {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 8px 18px;
+      border-radius: 30px;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mode-btn:hover { border-color: var(--c1); color: var(--c1); }
+    .mode-btn.active {
+      background: var(--c1);
+      color: #03070a;
+      border-color: var(--c1);
+    }
+
+    /* ── START BUTTON ───────────────────────────── */
+    .start-wrap {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(3,7,10,0.75);
+      backdrop-filter: blur(4px);
+      gap: 28px;
+      transition: opacity 0.5s;
+    }
+    .start-wrap.gone { opacity: 0; pointer-events: none; }
+
+    .start-icon {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      border: 2px solid var(--c1);
       display: flex; align-items: center; justify-content: center;
+      font-size: 34px;
+      animation: floatIcon 3s ease-in-out infinite;
     }
-    
-    #webcam, #output_canvas {
-      position: absolute; width: 100%; height: 100%; object-fit: cover;
+    @keyframes floatIcon {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
     }
-    #webcam.mirror, #output_canvas.mirror {
-      transform: rotateY(180deg);
+
+    .start-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #fff;
+      text-align: center;
     }
-    #output_canvas { z-index: 2; }
+    .start-sub {
+      font-size: 13px;
+      color: rgba(200,232,224,0.55);
+      text-align: center;
+      max-width: 280px;
+      line-height: 1.6;
+    }
 
     .btn-start {
-      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-      z-index: 20; padding: 15px 30px; font-family: 'Space Mono'; font-weight: bold;
-      background: var(--teal); color: var(--bg); border: none; border-radius: 30px;
-      cursor: pointer; box-shadow: 0 0 20px rgba(0,229,204,0.4); transition: 0.2s;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 2px;
+      padding: 16px 42px;
+      border-radius: 50px;
+      border: none;
+      background: linear-gradient(135deg, var(--c1), #00aacc);
+      color: #03070a;
+      cursor: pointer;
+      box-shadow: 0 0 30px rgba(0,255,224,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
     }
-    .btn-start:active { transform: translateX(-50%) scale(0.95); }
-    .hidden { display: none; }
+    .btn-start:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .btn-start:not(:disabled):hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 50px rgba(0,255,224,0.5);
+    }
 
+    /* ── HAND COUNT HINT ─────────────────────────── */
+    .hint {
+      position: absolute;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 25;
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      color: rgba(200,232,224,0.45);
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>AR DİJİTAL İP SİMÜLASYONU</h1>
-    <div class="status" id="status-text">Model Yükleniyor...</div>
-  </header>
+<header>
+  <div class="logo">
+    <div class="logo-dot" id="dot"></div>
+    <span class="logo-text">AR STRINGS</span>
+  </div>
+  <div class="badge badge-loading" id="badge">YÜKLÜYOR</div>
+</header>
 
-  <div class="canvas-wrap">
-    <video id="webcam" autoplay playsinline></video>
-    <canvas id="output_canvas"></canvas>
-    <button class="btn-start" id="btnCam" disabled>KAMERAYI AÇ</button>
+<div class="scene">
+  <video id="webcam" autoplay playsinline muted></video>
+  <canvas id="cvs"></canvas>
+
+  <!-- Start overlay -->
+  <div class="start-wrap" id="startWrap">
+    <div class="start-icon">🖐</div>
+    <div class="start-title">AR İP SİMÜLASYONU</div>
+    <div class="start-sub">İki elinizi kameraya gösterin.<br>Parmaklarınız arasında fiziksel ipler oluşur.</div>
+    <button class="btn-start" id="btnStart" disabled>KAMERAYI BAŞLAT</button>
   </div>
 
+  <!-- Mode selector (visible after camera starts) -->
+  <div class="mode-panel hidden" id="modePanel">
+    <button class="mode-btn active" data-mode="neon">NEON</button>
+    <button class="mode-btn" data-mode="rainbow">RAINBOW</button>
+    <button class="mode-btn" data-mode="fire">ATEŞ</button>
+    <button class="mode-btn" data-mode="ice">BUZ</button>
+  </div>
+
+  <div class="hint" id="hint"></div>
+</div>
+
 <script type="module">
-import {
-  HandLandmarker,
-  FilesetResolver
-} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+import { HandLandmarker, FilesetResolver }
+  from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
 
-const video = document.getElementById("webcam");
-const canvas = document.getElementById("output_canvas");
-const ctx = canvas.getContext("2d");
-const btnCam = document.getElementById("btnCam");
-const statusText = document.getElementById("status-text");
+/* ── DOM ──────────────────────────────────────────── */
+const video    = document.getElementById("webcam");
+const cvs      = document.getElementById("cvs");
+const ctx      = cvs.getContext("2d");
+const btnStart = document.getElementById("btnStart");
+const badge    = document.getElementById("badge");
+const dot      = document.getElementById("dot");
+const startWrap= document.getElementById("startWrap");
+const modePanel= document.getElementById("modePanel");
+const hint     = document.getElementById("hint");
 
-let handLM;
-let running = false;
-let lastTime = -1;
+/* ── STATE ────────────────────────────────────────── */
+let handLM, running = false, lastTime = -1;
+let currentMode = "neon";
 
-// --- FİZİK MOTORU: Verlet İp Simülasyonu ---
-class PhysicsRope {
-  constructor(segments, color) {
-    this.points = [];
-    this.color = color;
-    this.segmentLength = 10; // İpin gerginliği/uzunluğu
-    
-    // İp üzerindeki noktaları oluştur
-    for (let i = 0; i < segments; i++) {
-      this.points.push({ x: 0, y: 0, oldX: 0, oldY: 0 });
-    }
+const MODES = {
+  neon:    { ropes: ["#00ffe0","#ff2d78","#ffe100"] },
+  rainbow: { ropes: ["hsl-cycle","hsl-cycle","hsl-cycle"] },
+  fire:    { ropes: ["#ff6600","#ff3300","#ffcc00"] },
+  ice:     { ropes: ["#88ddff","#aaeeff","#ffffff"] },
+};
+
+let hue = 0; // for rainbow cycle
+
+/* ── PARTICLES ───────────────────────────────────── */
+const particles = [];
+function spawnParticles(x, y, color) {
+  for (let i = 0; i < 3; i++) {
+    particles.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 3,
+      vy: (Math.random() - 0.5) * 3 - 1,
+      life: 1,
+      color,
+      size: Math.random() * 3 + 1,
+    });
+  }
+}
+function updateParticles() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.12;
+    p.life -= 0.04;
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    ctx.globalAlpha = p.life * 0.8;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ── VERLET ROPE ──────────────────────────────────── */
+class Rope {
+  constructor(segments, baseColor) {
+    this.baseColor = baseColor;
+    this.segs = segments;
+    this.rest = 11;
+    this.pts = Array.from({ length: segments }, () => ({ x: 0, y: 0, ox: 0, oy: 0 }));
   }
 
-  update(startX, startY, endX, endY) {
-    const p = this.points;
-    const len = p.length;
+  update(x0, y0, x1, y1) {
+    const p = this.pts, n = p.length;
+    p[0].x = x0; p[0].y = y0;
+    p[n-1].x = x1; p[n-1].y = y1;
 
-    // Başlangıç ve bitiş noktalarını parmaklara sabitle
-    p[0].x = startX; p[0].y = startY;
-    p[len - 1].x = endX; p[len - 1].y = endY;
-
-    // Yerçekimi ve İvme hesaplaması
-    for (let i = 1; i < len - 1; i++) {
-      let vx = (p[i].x - p[i].oldX) * 0.95; // Sürtünme
-      let vy = (p[i].y - p[i].oldY) * 0.95 + 1.2; // Yerçekimi (+1.2)
-      
-      p[i].oldX = p[i].x;
-      p[i].oldY = p[i].y;
-      
-      p[i].x += vx;
-      p[i].y += vy;
+    for (let i = 1; i < n - 1; i++) {
+      let vx = (p[i].x - p[i].ox) * 0.94;
+      let vy = (p[i].y - p[i].oy) * 0.94 + 1.4;
+      p[i].ox = p[i].x; p[i].oy = p[i].y;
+      p[i].x += vx; p[i].y += vy;
     }
 
-    // Mesafe kısıtlamaları (İpin kopmamasını sağlar)
-    // Ne kadar çok dönerse (iteration), ip o kadar sert olur.
-    for (let iter = 0; iter < 10; iter++) {
-      for (let i = 0; i < len - 1; i++) {
-        let p1 = p[i];
-        let p2 = p[i + 1];
-        
-        let dx = p2.x - p1.x;
-        let dy = p2.y - p1.y;
-        let dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        
-        let diff = this.segmentLength - dist;
-        let percent = (diff / dist) / 2;
-        
-        let offsetX = dx * percent;
-        let offsetY = dy * percent;
-
-        if (i !== 0) {
-          p1.x -= offsetX;
-          p1.y -= offsetY;
-        }
-        if (i + 1 !== len - 1) {
-          p2.x += offsetX;
-          p2.y += offsetY;
-        }
+    for (let it = 0; it < 12; it++) {
+      for (let i = 0; i < n - 1; i++) {
+        const a = p[i], b = p[i+1];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+        const pct = (this.rest - dist) / dist / 2;
+        const ox = dx * pct, oy = dy * pct;
+        if (i !== 0)   { a.x -= ox; a.y -= oy; }
+        if (i+1 !== n-1) { b.x += ox; b.y += oy; }
       }
     }
   }
 
-  draw(ctx) {
-    ctx.beginPath();
-    ctx.moveTo(this.points[0].x, this.points[0].y);
-    for (let i = 1; i < this.points.length; i++) {
-      ctx.lineTo(this.points[i].x, this.points[i].y);
+  getColor(t) {
+    if (this.baseColor === "hsl-cycle") return `hsl(${(hue + t * 120) % 360},100%,65%)`;
+    return this.baseColor;
+  }
+
+  draw() {
+    const p = this.pts, n = p.length;
+    for (let i = 0; i < n - 1; i++) {
+      const t = i / n;
+      const col = this.getColor(t);
+      ctx.beginPath();
+      ctx.moveTo(p[i].x, p[i].y);
+      ctx.lineTo(p[i+1].x, p[i+1].y);
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 3;
+      ctx.lineCap = "round";
+      ctx.shadowColor = col;
+      ctx.shadowBlur = 16;
+      ctx.stroke();
     }
-    
-    // Neon Işık Efekti
-    ctx.strokeStyle = this.color;
-    ctx.lineWidth = 4;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.shadowColor = this.color;
-    ctx.shadowBlur = 20;
-    ctx.stroke();
-    ctx.shadowBlur = 0; // Diğer çizimleri etkilememesi için sıfırla
+    ctx.shadowBlur = 0;
   }
 }
 
-// 2 farklı ip oluşturuyoruz (Başparmaklar arası ve işaret parmakları arası)
-const ropeThumbs = new PhysicsRope(25, "#00e5cc"); // Turkuaz
-const ropeIndexes = new PhysicsRope(25, "#ff4081"); // Pembe
+/* ── ROPE INSTANCES ──────────────────────────────── */
+// 3 ropes: thumbs, index fingers, middle fingers
+const ropes = [
+  new Rope(28, "#00ffe0"),
+  new Rope(28, "#ff2d78"),
+  new Rope(28, "#ffe100"),
+];
 
-// --- MEDIAPIPE KURULUMU ---
-async function setupModel() {
+function applyMode() {
+  const m = MODES[currentMode];
+  ropes.forEach((r, i) => {
+    r.baseColor = m.ropes[i] || m.ropes[0];
+  });
+}
+applyMode();
+
+/* ── MEDIAPIPE ───────────────────────────────────── */
+async function loadModel() {
   const vision = await FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
   );
   handLM = await HandLandmarker.createFromOptions(vision, {
     baseOptions: {
       modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-      delegate: "GPU"
+      delegate: "GPU",
     },
     runningMode: "VIDEO",
-    numHands: 2, // 2 eli de takip et
-    minHandDetectionConfidence: 0.6,
-    minTrackingConfidence: 0.6
+    numHands: 2,
+    minHandDetectionConfidence: 0.55,
+    minTrackingConfidence: 0.55,
   });
-
-  statusText.textContent = "Sistem Hazır";
-  btnCam.disabled = false;
+  badge.textContent = "HAZIR";
+  badge.className = "badge badge-ready";
+  dot.style.background = "#00ff88";
+  btnStart.disabled = false;
 }
-setupModel();
+loadModel();
 
-// --- ANA DÖNGÜ ---
-function predict() {
+/* ── GLOWING DOT ─────────────────────────────────── */
+function drawDot(x, y, color) {
+  ctx.beginPath();
+  ctx.arc(x, y, 7, 0, Math.PI * 2);
+  ctx.fillStyle = "#fff";
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 20;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+/* ── MAIN LOOP ───────────────────────────────────── */
+function loop() {
   if (!running) return;
+  if (video.readyState >= 2 && lastTime !== video.currentTime) {
+    lastTime = video.currentTime;
 
-  if (video.readyState >= 2) {
-    if (lastTime !== video.currentTime) {
-      lastTime = video.currentTime;
-      
-      canvas.width = video.clientWidth;
-      canvas.height = video.clientHeight;
+    cvs.width  = video.clientWidth;
+    cvs.height = video.clientHeight;
+    const w = cvs.width, h = cvs.height;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, w, h);
 
-      // Ön kamera ayna efekti için context'i çevir
-      ctx.save();
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
+    // Mirror transform
+    ctx.save();
+    ctx.translate(w, 0);
+    ctx.scale(-1, 1);
 
-      const hR = handLM.detectForVideo(video, performance.now());
-      const hands = hR.landmarks;
+    hue = (hue + 0.8) % 360;
 
-      if (hands && hands.length > 0) {
-        const w = canvas.width;
-        const h = canvas.height;
+    const result = handLM.detectForVideo(video, performance.now());
+    const hands = result.landmarks;
 
-        // Ekranda 2 el varsa, ipleri ellerin arasına çek
-        if (hands.length === 2) {
-          const thumb1 = { x: hands[0][4].x * w, y: hands[0][4].y * h };
-          const index1 = { x: hands[0][8].x * w, y: hands[0][8].y * h };
-          
-          const thumb2 = { x: hands[1][4].x * w, y: hands[1][4].y * h };
-          const index2 = { x: hands[1][8].x * w, y: hands[1][8].y * h };
+    if (hands && hands.length > 0) {
+      // Fingertip indices: 4=thumb, 8=index, 12=middle
+      const TIPS = [4, 8, 12];
 
-          ropeThumbs.update(thumb1.x, thumb1.y, thumb2.x, thumb2.y);
-          ropeIndexes.update(index1.x, index1.y, index2.x, index2.y);
-
-          ropeThumbs.draw(ctx);
-          ropeIndexes.draw(ctx);
-        } 
-        // Ekranda tek el varsa, ipi başparmak ile işaret parmağı arasına çek
-        else if (hands.length === 1) {
-          const thumb = { x: hands[0][4].x * w, y: hands[0][4].y * h };
-          const index = { x: hands[0][8].x * w, y: hands[0][8].y * h };
-
-          ropeThumbs.update(thumb.x, thumb.y, index.x, index.y);
-          ropeThumbs.draw(ctx);
-        }
-
-        // Parmak uçlarına parlayan noktalar ekle
-        hands.forEach(hand => {
-          [4, 8].forEach(pointIndex => {
-            ctx.beginPath();
-            ctx.arc(hand[pointIndex].x * w, hand[pointIndex].y * h, 6, 0, 2 * Math.PI);
-            ctx.fillStyle = "#ffffff";
-            ctx.shadowColor = "#ffffff";
-            ctx.shadowBlur = 10;
-            ctx.fill();
-          });
+      if (hands.length === 2) {
+        hint.textContent = "İKİ EL ALGILANDI";
+        TIPS.forEach((tip, ri) => {
+          const a = hands[0][tip];
+          const b = hands[1][tip];
+          const ax = a.x * w, ay = a.y * h;
+          const bx = b.x * w, by = b.y * h;
+          ropes[ri].update(ax, ay, bx, by);
+          ropes[ri].draw();
+          drawDot(ax, ay, ropes[ri].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[ri].baseColor);
+          drawDot(bx, by, ropes[ri].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[ri].baseColor);
+          spawnParticles(ax, ay, ropes[ri].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[ri].baseColor);
+          spawnParticles(bx, by, ropes[ri].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[ri].baseColor);
         });
+      } else if (hands.length === 1) {
+        hint.textContent = "TEK EL — İKİ ELİ GÖSTER";
+        const thumb = hands[0][4];
+        const index = hands[0][8];
+        const tx = thumb.x * w, ty = thumb.y * h;
+        const ix = index.x * w, iy = index.y * h;
+        ropes[0].update(tx, ty, ix, iy);
+        ropes[0].draw();
+        drawDot(tx, ty, ropes[0].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[0].baseColor);
+        drawDot(ix, iy, ropes[0].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[0].baseColor);
+        spawnParticles(tx, ty, ropes[0].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[0].baseColor);
+        spawnParticles(ix, iy, ropes[0].baseColor === "hsl-cycle" ? `hsl(${hue},100%,65%)` : ropes[0].baseColor);
       }
-      ctx.restore();
+    } else {
+      hint.textContent = "ELLERİNİZİ KAMERAYA GÖSTERIN";
     }
+
+    updateParticles();
+    ctx.restore();
   }
-  requestAnimationFrame(predict);
+  requestAnimationFrame(loop);
 }
 
-// --- KAMERA BAŞLATMA ---
-btnCam.addEventListener("click", async () => {
-  if (!running) {
+/* ── CAMERA START ────────────────────────────────── */
+btnStart.addEventListener("click", async () => {
+  try {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }
     });
     video.srcObject = stream;
-    video.classList.add("mirror"); // CSS ayna efekti
-    
     video.onloadedmetadata = () => {
       video.play();
       running = true;
-      btnCam.classList.add("hidden");
-      predict();
+      startWrap.classList.add("gone");
+      modePanel.classList.remove("hidden");
+      loop();
     };
+  } catch (e) {
+    alert("Kamera erişimi reddedildi veya desteklenmiyor.");
   }
 });
 
-// Ekran boyutu değiştiğinde canvası güncelle
+/* ── MODE BUTTONS ────────────────────────────────── */
+document.querySelectorAll(".mode-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentMode = btn.dataset.mode;
+    applyMode();
+  });
+});
+
+/* ── RESIZE ──────────────────────────────────────── */
 window.addEventListener("resize", () => {
   if (running) {
-    canvas.width = video.clientWidth;
-    canvas.height = video.clientHeight;
+    cvs.width  = video.clientWidth;
+    cvs.height = video.clientHeight;
   }
 });
 </script>
