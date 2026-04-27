@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>AR Strings v2 — Esmanur Çaça</title>
+  <title>AR Strings v4 — Esmanur Çaça</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -13,7 +13,6 @@
       --c3: #ffee00;
       --c4: #7b2fff;
       --c5: #00ff88;
-      --slime: #39ff14;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -38,7 +37,7 @@
     #cvs {
       position: fixed; inset: 0;
       width: 100%; height: 100%;
-      z-index: 2;
+      z-index: 2; pointer-events: none;
     }
 
     /* ── HEADER ── */
@@ -50,9 +49,7 @@
       backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(0,255,240,0.12);
     }
-    .logo {
-      display: flex; align-items: center; gap: 14px;
-    }
+    .logo { display: flex; align-items: center; gap: 14px; }
     .logo-icon {
       width: 32px; height: 32px;
       background: conic-gradient(from 0deg, var(--c1), var(--c4), var(--c2), var(--c1));
@@ -68,25 +65,53 @@
       letter-spacing: 4px; color: var(--c1);
       text-shadow: 0 0 20px rgba(0,255,240,0.6);
     }
-    .logo-sub {
-      font-size: 10px; color: rgba(255,255,255,0.4);
-      letter-spacing: 2px; margin-top: 2px;
-    }
+    .logo-sub { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 2px; margin-top: 2px; }
     .status-pill {
       display: flex; align-items: center; gap: 8px;
       font-size: 10px; font-weight: 600;
       padding: 6px 16px; border-radius: 30px;
       border: 1px solid rgba(0,255,136,0.4);
-      color: var(--c5);
-      background: rgba(0,255,136,0.06);
+      color: var(--c5); background: rgba(0,255,136,0.06);
     }
     .status-dot {
       width: 6px; height: 6px; border-radius: 50%;
-      background: var(--c5);
-      box-shadow: 0 0 8px var(--c5);
+      background: var(--c5); box-shadow: 0 0 8px var(--c5);
       animation: blink 1.5s ease-in-out infinite;
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    /* ── SİLGİ BUTONU (Üst Sağ Köşe) ── */
+    #eraserBtn {
+      position: fixed; top: 76px; right: 20px; z-index: 50;
+      display: none; /* Sadece çizim modunda görünür */
+      background: rgba(0,5,8,0.85);
+      border: 1.5px solid rgba(255,255,255,0.25); color: #fff;
+      padding: 10px 18px; border-radius: 14px;
+      font-family: 'Orbitron', monospace; font-size: 11px; letter-spacing: 1px;
+      cursor: pointer; backdrop-filter: blur(14px);
+      transition: all 0.25s;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+    #eraserBtn:hover {
+      background: rgba(255,26,108,0.3);
+      border-color: var(--c2);
+      box-shadow: 0 0 24px rgba(255,26,108,0.5);
+      transform: scale(1.05);
+    }
+
+    /* ── RENK GÖSTERGESİ (Çizim Modu) ── */
+    #colorIndicator {
+      position: fixed; top: 76px; left: 20px; z-index: 50;
+      display: none;
+      flex-direction: column; gap: 6px;
+      background: rgba(0,5,8,0.82);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 12px 16px; border-radius: 14px;
+      backdrop-filter: blur(14px);
+      font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 1px;
+    }
+    .color-row { display: flex; align-items: center; gap: 9px; color: rgba(255,255,255,0.7); }
+    .color-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.3); }
 
     /* ── BOTTOM BAR ── */
     .bottom-bar {
@@ -103,84 +128,57 @@
     .mode-label {
       font-family: 'Orbitron', monospace;
       font-size: 9px; letter-spacing: 3px;
-      color: rgba(255,255,255,0.3);
-      align-self: flex-start;
+      color: rgba(255,255,255,0.3); align-self: flex-start;
     }
-    .btns { display: flex; gap: 8px; }
+    .btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
     .mbtn {
       font-family: 'Rajdhani', sans-serif;
       font-size: 12px; font-weight: 600;
       padding: 9px 20px; border-radius: 30px;
       border: 1px solid rgba(255,255,255,0.15);
       background: transparent; color: rgba(255,255,255,0.5);
-      cursor: pointer; transition: all 0.25s;
-      letter-spacing: 1px;
+      cursor: pointer; transition: all 0.25s; letter-spacing: 1px;
     }
     .mbtn:hover { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); }
     .mbtn.active[data-m="elec"] {
-      background: var(--c3); color: #000;
-      border-color: var(--c3);
+      background: var(--c3); color: #000; border-color: var(--c3);
       box-shadow: 0 0 20px rgba(255,238,0,0.5);
     }
     .mbtn.active[data-m="ropes"] {
-      background: var(--c1); color: #000;
-      border-color: var(--c1);
+      background: var(--c1); color: #000; border-color: var(--c1);
       box-shadow: 0 0 20px rgba(0,255,240,0.5);
     }
     .mbtn.active[data-m="slime"] {
-      background: var(--slime); color: #000;
-      border-color: var(--slime);
-      box-shadow: 0 0 20px rgba(57,255,20,0.5);
+      background: rgba(240,248,255,0.9); color: #000; border-color: #e0ffff;
+      box-shadow: 0 0 20px rgba(224,255,255,0.6);
     }
     .mbtn.active[data-m="draw"] {
-      background: var(--c4); color: #fff;
-      border-color: var(--c4);
+      background: var(--c4); color: #fff; border-color: var(--c4);
       box-shadow: 0 0 20px rgba(123,47,255,0.5);
     }
     .controls {
-      display: flex; align-items: center; gap: 14px;
-      width: 100%;
+      display: flex; align-items: center; gap: 14px; width: 100%;
       border-top: 1px solid rgba(255,255,255,0.07);
       margin-top: 4px; padding-top: 12px;
     }
-    .ctrl-label {
-      font-size: 10px; color: var(--c1);
-      letter-spacing: 1px; white-space: nowrap;
-    }
-    input[type=range] {
-      flex: 1; accent-color: var(--c1);
-      cursor: pointer; height: 4px;
-    }
+    .ctrl-label { font-size: 10px; color: var(--c1); letter-spacing: 1px; white-space: nowrap; }
+    input[type=range] { flex: 1; accent-color: var(--c1); cursor: pointer; height: 4px; }
     .screenshot-btn {
       background: var(--c2); color: white; border: none;
       padding: 8px 16px; border-radius: 20px;
       font-size: 10px; font-weight: bold;
       cursor: pointer; letter-spacing: 1px;
-      font-family: 'Rajdhani', sans-serif;
-      transition: all 0.2s;
+      font-family: 'Rajdhani', sans-serif; transition: all 0.2s;
     }
     .screenshot-btn:hover { transform: scale(1.05); }
 
     /* ── HINT BAR ── */
     #hintBar {
       position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-      z-index: 30;
-      font-size: 11px; color: rgba(255,255,255,0.5);
-      background: rgba(0,5,8,0.7);
-      padding: 8px 20px; border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.07);
-      letter-spacing: 1px; backdrop-filter: blur(10px);
-      transition: opacity 0.5s;
-    }
-
-    /* ── MODE INDICATOR ── */
-    #modeIndicator {
-      position: fixed; top: 80px; right: 25px;
-      z-index: 30;
-      font-family: 'Orbitron', monospace;
-      font-size: 11px; letter-spacing: 3px;
-      color: var(--c1);
-      opacity: 0.6;
+      z-index: 30; font-size: 11px; color: rgba(255,255,255,0.65);
+      background: rgba(0,5,8,0.75); padding: 8px 20px; border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.07); letter-spacing: 1px;
+      backdrop-filter: blur(10px); transition: opacity 0.5s; white-space: nowrap;
     }
 
     /* ── OVERLAY ── */
@@ -192,68 +190,37 @@
       transition: opacity 0.8s;
     }
     #overlay.hidden { opacity: 0; pointer-events: none; }
-
     .overlay-glow {
-      position: absolute; width: 400px; height: 400px;
-      border-radius: 50%;
+      position: absolute; width: 400px; height: 400px; border-radius: 50%;
       background: radial-gradient(circle, rgba(0,255,240,0.08) 0%, transparent 70%);
       animation: breathe 3s ease-in-out infinite;
     }
-    @keyframes breathe {
-      0%,100% { transform: scale(1); opacity: 0.5; }
-      50% { transform: scale(1.3); opacity: 1; }
-    }
-
+    @keyframes breathe { 0%,100%{transform:scale(1);opacity:.5} 50%{transform:scale(1.3);opacity:1} }
     .overlay-icon {
-      font-size: 64px; margin-bottom: 24px;
-      position: relative; z-index: 1;
+      font-size: 64px; margin-bottom: 24px; position: relative; z-index: 1;
       filter: drop-shadow(0 0 30px rgba(0,255,240,0.8));
       animation: float 2s ease-in-out infinite;
     }
-    @keyframes float {
-      0%,100% { transform: translateY(0); }
-      50% { transform: translateY(-12px); }
-    }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
     .overlay-title {
-      font-family: 'Orbitron', monospace;
-      font-size: 22px; font-weight: 900;
-      letter-spacing: 4px; margin-bottom: 8px;
-      position: relative; z-index: 1;
+      font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 900;
+      letter-spacing: 4px; margin-bottom: 8px; position: relative; z-index: 1;
       background: linear-gradient(90deg, var(--c1), var(--c4));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
     .overlay-sub {
-      font-size: 13px; color: rgba(255,255,255,0.45);
-      margin-bottom: 40px; text-align: center;
-      max-width: 320px; line-height: 1.7;
-      position: relative; z-index: 1;
+      font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 40px;
+      text-align: center; max-width: 320px; line-height: 1.7; position: relative; z-index: 1;
     }
     #startBtn {
-      padding: 18px 56px; border-radius: 50px;
-      border: none;
+      padding: 18px 56px; border-radius: 50px; border: none;
       background: linear-gradient(135deg, var(--c1), var(--c4));
-      color: #000; font-weight: 700; font-size: 15px;
-      cursor: pointer;
-      box-shadow: 0 0 40px rgba(0,255,240,0.4);
-      font-family: 'Orbitron', monospace;
-      letter-spacing: 3px;
-      position: relative; z-index: 1;
-      transition: all 0.3s;
+      color: #000; font-weight: 700; font-size: 15px; cursor: pointer;
+      box-shadow: 0 0 40px rgba(0,255,240,0.4); font-family: 'Orbitron', monospace;
+      letter-spacing: 3px; position: relative; z-index: 1; transition: all 0.3s;
     }
     #startBtn:hover { transform: scale(1.05); box-shadow: 0 0 60px rgba(0,255,240,0.6); }
     #startBtn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .feature-list {
-      display: flex; gap: 12px; margin-bottom: 32px;
-      position: relative; z-index: 1;
-      flex-wrap: wrap; justify-content: center;
-    }
-    .feature-tag {
-      font-size: 10px; letter-spacing: 2px;
-      padding: 5px 14px; border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.5);
-    }
   </style>
 </head>
 <body>
@@ -266,25 +233,29 @@
   <div class="logo">
     <div class="logo-icon">🖐</div>
     <div>
-      <div class="logo-text">AR STRINGS v2</div>
+      <div class="logo-text">AR STRINGS v4</div>
       <div class="logo-sub">ESMANUR ÇAÇA</div>
     </div>
   </div>
-  <div class="status-pill">
-    <div class="status-dot"></div>
-    CANLI
-  </div>
+  <div class="status-pill"><div class="status-dot"></div>CANLI</div>
 </header>
 
+<button id="eraserBtn">🧹 EKRANI TEMİZLE</button>
+
+<div id="colorIndicator">
+  <div class="color-row"><div class="color-dot" style="background:#ff0000;box-shadow:0 0 8px #ff0000"></div> ☝️ İşaret → KIRMIZI</div>
+  <div class="color-row"><div class="color-dot" style="background:#222;border-color:#888"></div> ✌️ İşaret + Orta → SİYAH</div>
+  <div class="color-row"><div class="color-dot" style="background:#ff69b4;box-shadow:0 0 8px #ff69b4"></div> 🤘 İşaret + Serçe → PEMBE</div>
+</div>
+
 <div id="hintBar">☝️ İki eli kameraya göster → ipler oluşur</div>
-<div id="modeIndicator">ELEC</div>
 
 <div class="bottom-bar" id="uiBar" style="display:none">
   <div class="mode-label">MOD SEÇ</div>
   <div class="btns">
     <button class="mbtn active" data-m="elec">⚡ ELEKTRİK</button>
     <button class="mbtn" data-m="ropes">🕸 AĞLAR</button>
-    <button class="mbtn" data-m="slime">🟢 SLİME</button>
+    <button class="mbtn" data-m="slime">💧 ŞEFFAF JÖLE</button>
     <button class="mbtn" data-m="draw">🎨 ÇİZİM</button>
   </div>
   <div class="controls" id="ropeControl">
@@ -297,20 +268,13 @@
 <div id="overlay">
   <div class="overlay-glow"></div>
   <div class="overlay-icon">🖐️</div>
-  <div class="overlay-title">AR STRINGS v2</div>
-  <p class="overlay-sub">İki elini kameraya göster. Parmak uçların arasında fizik motorlu ipler ve slime efektleri oluşsun.</p>
-  <div class="feature-list">
-    <span class="feature-tag">⚡ ELEKTRİK</span>
-    <span class="feature-tag">🟢 SLİME</span>
-    <span class="feature-tag">🕸 AĞLAR</span>
-    <span class="feature-tag">🎨 ÇİZİM</span>
-    <span class="feature-tag">✊ KÜRE</span>
-  </div>
+  <div class="overlay-title">AR STRINGS v4</div>
+  <p class="overlay-sub">Sedefli şeffaf jöle ağları, çiçek açan yumruklar ve silinmeyen çizim modunu keşfet.</p>
   <button id="startBtn" disabled>BAŞLAT</button>
 </div>
 
 <script type="module">
-import { HandLandmarker, FilesetResolver, DrawingUtils }
+import { HandLandmarker, FilesetResolver }
   from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
 
 const video   = document.getElementById("webcam");
@@ -319,37 +283,53 @@ const dctx    = drawCvs.getContext("2d");
 const cvs     = document.getElementById("cvs");
 const ctx     = cvs.getContext("2d");
 
-// ── PARMAK UÇLARI & EKLEM BAĞLANTILARI ──────────────────────────────
-// 21 landmark: 0=bilek, 1-4=başparmak, 5-8=işaret, 9-12=orta, 13-16=yüzük, 17-20=serçe
-const FINGER_TIPS   = [4, 8, 12, 16, 20];
-const FINGER_MID    = [3, 7, 11, 15, 19];
-const FINGER_BASE   = [2, 6, 10, 14, 18];
-const KNUCKLES      = [1, 5, 9, 13, 17];
-const WRIST         = 0;
+const FINGER_TIPS = [4, 8, 12, 16, 20];
+const KNUCKLES    = [1, 5, 9, 13, 17];
+const WRIST       = 0;
 
-// İskelet bağlantıları (tüm parmak segmentleri)
 const SKELETON_CONNECTIONS = [
-  // Başparmak
-  [0,1],[1,2],[2,3],[3,4],
-  // İşaret
-  [0,5],[5,6],[6,7],[7,8],
-  // Orta
-  [0,9],[9,10],[10,11],[11,12],
-  // Yüzük
-  [0,13],[13,14],[14,15],[15,16],
-  // Serçe
-  [0,17],[17,18],[18,19],[19,20],
-  // Avuç içi çerçevesi
-  [5,9],[9,13],[13,17],[0,5],[0,17]
+  [0,1],[1,2],[2,3],[3,4], [0,5],[5,6],[6,7],[7,8],
+  [0,9],[9,10],[10,11],[11,12], [0,13],[13,14],[14,15],[15,16],
+  [0,17],[17,18],[18,19],[19,20], [5,9],[9,13],[13,17],[0,5],[0,17]
 ];
 
 const COLORS = ["#00fff0","#ff1a6c","#ffee00","#7b2fff","#00ff88","#ff8800","#00aaff"];
-const SLIME_COLORS = ["#39ff14","#00ff88","#a8ff3e","#7fff00","#adff2f"];
 
 let mode = "elec", ropeCount = 30, running = false, lastTime = -1;
 let handLM, globalHue = 0, prevPos = {};
 
-// ── AUDIO ────────────────────────────────────────────────────────────
+// ── SİLGİ (TÜM ÇİZİMLERİ TEMİZLE) ────────────────────────────────────
+document.getElementById("eraserBtn").onclick = () => {
+  dctx.clearRect(0, 0, drawCvs.width, drawCvs.height);
+};
+
+// ── ÇİZİM RENGİ TESPİTİ (JESTLER) ────────────────────────────────────
+function detectDrawColor(h) {
+  const tip8  = h[8],  tip12 = h[12], tip16 = h[16], tip20 = h[20];
+  const pip8  = h[6],  pip12 = h[10], pip16 = h[14], pip20 = h[18];
+
+  const indexUp  = tip8.y  < pip8.y  - 0.04;
+  const middleUp = tip12.y < pip12.y - 0.04;
+  const ringUp   = tip16.y < pip16.y - 0.02;
+  const pinkyUp  = tip20.y < pip20.y - 0.02;
+
+  // 1. İşaret + Orta parmak → SİYAH
+  if (indexUp && middleUp && !ringUp && !pinkyUp) {
+    return { color: "#111111", isDrawing: true, label: "✌️ SİYAH" };
+  }
+  // 2. İşaret + Serçe parmak (Rock İşareti) → PEMBE
+  if (indexUp && !middleUp && !ringUp && pinkyUp) {
+    return { color: "#ff69b4", isDrawing: true, label: "🤘 PEMBE" };
+  }
+  // 3. Sadece İşaret parmak → KIRMIZI
+  if (indexUp && !middleUp && !ringUp && !pinkyUp) {
+    return { color: "#ff0000", isDrawing: true, label: "☝️ KIRMIZI" };
+  }
+
+  return { color: "#ff0000", isDrawing: false, label: "" };
+}
+
+// ── SES SİSTEMİ ───────────────────────────────────────────────────────
 let audioCtx, masterGain, buzzOsc;
 function initAudio() {
   const AC = window.AudioContext || window.webkitAudioContext;
@@ -366,7 +346,7 @@ function playVizzt(vol, pitch) {
   buzzOsc.frequency.setTargetAtTime(55 + pitch * 120, audioCtx.currentTime, 0.08);
 }
 
-// ── VERLEt ROPE PHYSICS ───────────────────────────────────────────────
+// ── FİZİK MOTORU (İPLER) ──────────────────────────────────────────────
 class Rope {
   constructor(n, col) {
     this.n = n; this.col = col;
@@ -374,30 +354,35 @@ class Rope {
   }
   update(x0, y0, x1, y1) {
     const p = this.pts, n = this.n;
-    p[0].x = x0; p[0].y = y0;
-    p[n-1].x = x1; p[n-1].y = y1;
+    p[0].x = x0; p[0].y = y0; p[n-1].x = x1; p[n-1].y = y1;
     for (let i = 1; i < n-1; i++) {
       let vx = (p[i].x - p[i].ox) * 0.93;
       let vy = (p[i].y - p[i].oy) * 0.93 + 0.8;
-      p[i].ox = p[i].x; p[i].oy = p[i].y;
-      p[i].x += vx; p[i].y += vy;
+      p[i].ox = p[i].x; p[i].oy = p[i].y; p[i].x += vx; p[i].y += vy;
     }
     for (let it = 0; it < 10; it++) {
       for (let i = 0; i < n-1; i++) {
         let dx = p[i+1].x - p[i].x, dy = p[i+1].y - p[i].y;
         let d = Math.sqrt(dx*dx + dy*dy) || 1;
         let diff = (10 - d) / d / 2;
-        if (i !== 0)   { p[i].x   -= dx * diff; p[i].y   -= dy * diff; }
-        if (i+1 !== n-1) { p[i+1].x += dx * diff; p[i+1].y += dy * diff; }
+        if (i !== 0)       { p[i].x   -= dx*diff; p[i].y   -= dy*diff; }
+        if (i+1 !== n-1)   { p[i+1].x += dx*diff; p[i+1].y += dy*diff; }
       }
+    }
+  }
+
+  // İpleri merkeze daha güçlü çekerek "birbirine yapışma" hissi ver
+  attractToCenter(cx, cy, force) {
+    for (let i = 1; i < this.n - 1; i++) {
+      this.pts[i].x += (cx - this.pts[i].x) * force;
+      this.pts[i].y += (cy - this.pts[i].y) * force;
     }
   }
 
   drawRope(isElec, isSlime, slimeRadius) {
     const pts = this.pts;
     if (isElec) {
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
+      ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
       for (let i = 1; i < this.n; i++) ctx.lineTo(pts[i].x, pts[i].y);
       ctx.strokeStyle = Math.random() > 0.85 ? "#fff" : "#ffee00";
       ctx.lineWidth = 4; ctx.shadowBlur = 18; ctx.shadowColor = "#ffee00";
@@ -405,37 +390,43 @@ class Rope {
       if (Math.random() > 0.7) {
         ctx.beginPath(); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(255,255,255,0.6)";
         ctx.moveTo(pts[0].x, pts[0].y);
-        for (let i = 1; i < this.n; i++) {
+        for (let i = 1; i < this.n; i++)
           ctx.lineTo(pts[i].x + (Math.random()-0.5)*20, pts[i].y + (Math.random()-0.5)*20);
-        }
         ctx.stroke();
       }
       ctx.shadowBlur = 0;
+
     } else if (isSlime) {
-      // Slime: thick gooey lines with glow
-      const t = 0.5;
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
+      // ── ŞEFFAF / SEDEFLİ JÖLE (Cam Görünümü) ──
+      ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
       for (let i = 1; i < this.n - 1; i++) {
         const mx = (pts[i].x + pts[i+1].x) / 2;
         const my = (pts[i].y + pts[i+1].y) / 2;
         ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
       }
       ctx.lineTo(pts[this.n-1].x, pts[this.n-1].y);
-      ctx.strokeStyle = this.col;
-      ctx.lineWidth = slimeRadius * 2.5;
+      const thick = slimeRadius * 2.8;
       ctx.lineCap = "round"; ctx.lineJoin = "round";
-      ctx.shadowBlur = 20; ctx.shadowColor = this.col;
-      ctx.globalAlpha = 0.82;
+
+      // 1. Dış Glow (Şeffaf Parlama)
+      ctx.lineWidth = thick + 6;
+      ctx.strokeStyle = "rgba(255,255,255,0.1)";
+      ctx.shadowBlur = 25; ctx.shadowColor = "rgba(200,240,255,0.5)";
+      ctx.stroke(); ctx.shadowBlur = 0;
+
+      // 2. Cam/Sedef Gövde
+      ctx.lineWidth = thick;
+      // Çok hafif mavi/beyaz şeffaf
+      ctx.strokeStyle = "rgba(220, 250, 255, 0.25)";
       ctx.stroke();
-      // Inner highlight
-      ctx.strokeStyle = "rgba(220,255,200,0.35)";
-      ctx.lineWidth = slimeRadius * 0.8;
+
+      // 3. Işık Yansıması (Highlight)
+      ctx.lineWidth = thick * 0.25;
+      ctx.strokeStyle = "rgba(255,255,255,0.85)";
       ctx.stroke();
-      ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+
     } else {
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
+      ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
       for (let i = 1; i < this.n; i++) ctx.lineTo(pts[i].x, pts[i].y);
       ctx.strokeStyle = this.col;
       ctx.lineWidth = 2; ctx.shadowBlur = 8; ctx.shadowColor = this.col;
@@ -443,147 +434,102 @@ class Rope {
     }
   }
 }
-const ropePool = Array.from({length:120}, (_, i) => new Rope(20, COLORS[i % COLORS.length]));
-// Separate slime ropes with slime colors
-const slimePool = Array.from({length:120}, (_, i) => new Rope(16, SLIME_COLORS[i % SLIME_COLORS.length]));
+const ropePool = Array.from({length:200}, (_, i) => new Rope(20, COLORS[i % COLORS.length]));
 
-// ── EL ISKELETİ ÇİZİMİ ───────────────────────────────────────────────
+// ── EL İSKELETİ ───────────────────────────────────────────────────────
 function drawHandSkeleton(lm, W, H) {
   const px = (lm, idx) => ({ x: lm[idx].x * W, y: lm[idx].y * H });
-  const time = performance.now();
-
-  // Bağlantı çizgileri
   for (const [a, b] of SKELETON_CONNECTIONS) {
     const pa = px(lm, a), pb = px(lm, b);
     const grad = ctx.createLinearGradient(pa.x, pa.y, pb.x, pb.y);
     grad.addColorStop(0, "rgba(0,255,240,0.9)");
     grad.addColorStop(1, "rgba(0,255,136,0.7)");
-    ctx.beginPath();
-    ctx.moveTo(pa.x, pa.y);
-    ctx.lineTo(pb.x, pb.y);
-    ctx.strokeStyle = grad;
-    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y);
+    ctx.strokeStyle = grad; ctx.lineWidth = 2.5;
     ctx.shadowBlur = 10; ctx.shadowColor = "#00fff0";
     ctx.stroke(); ctx.shadowBlur = 0;
   }
-
-  // Eklem noktaları (landmark circles)
+  const time = performance.now();
   for (let i = 0; i < 21; i++) {
     const p = px(lm, i);
-    const isKnuckle = KNUCKLES.includes(i);
     const isTip = FINGER_TIPS.includes(i);
-    const isWrist = i === 0;
-
-    const r = isWrist ? 8 : isTip ? 7 : isKnuckle ? 5 : 4;
+    const isKnuckle = KNUCKLES.includes(i);
+    const r = i === 0 ? 8 : isTip ? 7 : isKnuckle ? 5 : 4;
     const innerColor = isTip ? "#ff1a6c" : isKnuckle ? "#ffee00" : "#00fff0";
     const outerColor = isTip ? "rgba(255,26,108,0.4)" : "rgba(0,255,240,0.3)";
-
-    // Outer glow ring
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, r + 3, 0, Math.PI * 2);
-    ctx.fillStyle = outerColor;
-    ctx.shadowBlur = 15; ctx.shadowColor = innerColor;
-    ctx.fill();
-
-    // Inner dot
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-    ctx.fillStyle = innerColor;
-    ctx.shadowBlur = 20; ctx.shadowColor = innerColor;
+    ctx.beginPath(); ctx.arc(p.x, p.y, r+3, 0, Math.PI*2);
+    ctx.fillStyle = outerColor; ctx.shadowBlur = 15; ctx.shadowColor = innerColor; ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI*2);
+    ctx.fillStyle = innerColor; ctx.shadowBlur = 20; ctx.shadowColor = innerColor;
     ctx.fill(); ctx.shadowBlur = 0;
-
-    // Pulse ring on tips
     if (isTip) {
       const pulse = (Math.sin(time * 0.006 + i) * 0.5 + 0.5);
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, r + 4 + pulse * 6, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(255,26,108,${0.5 * (1 - pulse)})`;
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      ctx.beginPath(); ctx.arc(p.x, p.y, r + 4 + pulse * 6, 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(255,26,108,${0.5*(1-pulse)})`;
+      ctx.lineWidth = 1; ctx.stroke();
     }
   }
 }
 
-// ── EL KAPALI MI (YUMRUK) ─────────────────────────────────────────────
+// ── YUMRUK TESPİTİ ────────────────────────────────────────────────────
 function isFist(lm) {
-  let closedCount = 0;
-  // Her parmak için: uç, orta elin tabanına göre kapalı mı?
+  let closed = 0;
   for (let i = 0; i < 5; i++) {
-    const tip = lm[FINGER_TIPS[i]];
-    const base = lm[KNUCKLES[i]];
-    const wrist = lm[WRIST];
-    const dTipWrist = Math.hypot(tip.x - wrist.x, tip.y - wrist.y);
-    const dBaseWrist = Math.hypot(base.x - wrist.x, base.y - wrist.y);
-    if (dTipWrist < dBaseWrist * 1.1) closedCount++;
+    const tip = lm[FINGER_TIPS[i]], base = lm[KNUCKLES[i]], wrist = lm[WRIST];
+    if (Math.hypot(tip.x-wrist.x, tip.y-wrist.y) < Math.hypot(base.x-wrist.x, base.y-wrist.y) * 1.1) closed++;
   }
-  return closedCount >= 4;
+  return closed >= 4;
 }
 
-// ── SLIME KÜRE ÇİZ ───────────────────────────────────────────────────
-function drawSlimeSphere(cx, cy, r) {
-  // Dış glow
-  const outerGrad = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r * 1.8);
-  outerGrad.addColorStop(0, "rgba(57,255,20,0.15)");
-  outerGrad.addColorStop(1, "transparent");
-  ctx.beginPath();
-  ctx.arc(cx, cy, r * 1.8, 0, Math.PI * 2);
-  ctx.fillStyle = outerGrad;
-  ctx.fill();
+// ── ÇİÇEK AÇTIRMA (Yumruk Efekti) ─────────────────────────────────────
+function drawFlower(cx, cy, r) {
+  const t = performance.now() * 0.001;
+  const petalCount = 7;
+  const petalColors = ["#ff69b4","#ff1493","#ff85c2","#ffb3d9","#ff4dac","#ff007f","#ff99cc"];
 
-  // Ana küre
-  const grad = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, r * 0.1, cx, cy, r);
-  grad.addColorStop(0, "rgba(180,255,150,0.95)");
-  grad.addColorStop(0.4, "rgba(57,255,20,0.9)");
-  grad.addColorStop(0.8, "rgba(0,200,50,0.85)");
-  grad.addColorStop(1, "rgba(0,100,20,0.7)");
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = grad;
-  ctx.shadowBlur = 30; ctx.shadowColor = "#39ff14";
-  ctx.fill(); ctx.shadowBlur = 0;
+  // Yapraklar
+  for (let i = 0; i < petalCount; i++) {
+    const angle = (i / petalCount) * Math.PI * 2 + t * 0.7;
+    const px2 = cx + Math.cos(angle) * r * 0.58;
+    const py2 = cy + Math.sin(angle) * r * 0.58;
+    const pr = r * 0.42 + Math.sin(t * 2.5 + i) * r * 0.07;
 
-  // Parlama highlight
-  const hilite = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.4, 0, cx - r * 0.35, cy - r * 0.4, r * 0.45);
-  hilite.addColorStop(0, "rgba(255,255,255,0.7)");
-  hilite.addColorStop(1, "transparent");
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = hilite;
-  ctx.fill();
+    const grad = ctx.createRadialGradient(px2, py2, 0, px2, py2, pr);
+    grad.addColorStop(0, "rgba(255,255,255,0.95)");
+    grad.addColorStop(0.25, petalColors[i]);
+    grad.addColorStop(1, "rgba(255,20,147,0.08)");
 
-  // Damla efekti (slime blobs)
-  for (let i = 0; i < 5; i++) {
-    const angle = (performance.now() * 0.001 + i * 1.26) % (Math.PI * 2);
-    const bx = cx + Math.cos(angle) * r * 0.75;
-    const by = cy + Math.sin(angle) * r * 0.85;
-    const br = r * 0.18 + Math.sin(performance.now() * 0.003 + i) * r * 0.06;
     ctx.beginPath();
-    ctx.arc(bx, by, br, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(57,255,20,0.6)";
-    ctx.shadowBlur = 12; ctx.shadowColor = "#39ff14";
+    ctx.ellipse(px2, py2, pr, pr * 0.58, angle, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.shadowBlur = 18; ctx.shadowColor = petalColors[i];
     ctx.fill(); ctx.shadowBlur = 0;
   }
-}
 
-// ── SLIME İP ─────────────────────────────────────────────────────────
-function drawSlimeBlob(p0, p1, thickness) {
-  const dx = p1.x - p0.x, dy = p1.y - p0.y;
-  const len = Math.sqrt(dx*dx + dy*dy) || 1;
-  const nx = -dy/len * thickness, ny = dx/len * thickness;
+  // Parlayan Çiçek Tozları
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2 + t * 1.8;
+    const sx = cx + Math.cos(a) * r * 1.15;
+    const sy = cy + Math.sin(a) * r * 1.15;
+    ctx.beginPath(); ctx.arc(sx, sy, r * 0.055, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${(i * 36 + t * 80) % 360},100%,75%,0.9)`;
+    ctx.shadowBlur = 10; ctx.shadowColor = "#ffaadd";
+    ctx.fill(); ctx.shadowBlur = 0;
+  }
 
-  // Ana gövde
-  ctx.beginPath();
-  ctx.moveTo(p0.x + nx, p0.y + ny);
-  ctx.quadraticCurveTo((p0.x+p1.x)/2 + nx*0.5, (p0.y+p1.y)/2 + ny*0.5, p1.x + nx*0.7, p1.y + ny*0.7);
-  ctx.lineTo(p1.x - nx*0.7, p1.y - ny*0.7);
-  ctx.quadraticCurveTo((p0.x+p1.x)/2 - nx*0.5, (p0.y+p1.y)/2 - ny*0.5, p0.x - nx, p0.y - ny);
-  ctx.closePath();
-  ctx.fillStyle = "rgba(57,255,20,0.7)";
-  ctx.shadowBlur = 15; ctx.shadowColor = "#39ff14";
+  // Merkez Polen
+  const cGrad = ctx.createRadialGradient(cx-r*0.1, cy-r*0.1, 0, cx, cy, r*0.32);
+  cGrad.addColorStop(0, "#fff");
+  cGrad.addColorStop(0.35, "#ffee00");
+  cGrad.addColorStop(1, "#ff8800");
+  ctx.beginPath(); ctx.arc(cx, cy, r * 0.32, 0, Math.PI*2);
+  ctx.fillStyle = cGrad;
+  ctx.shadowBlur = 28; ctx.shadowColor = "#ffee00";
   ctx.fill(); ctx.shadowBlur = 0;
 }
 
-// ── SİSTEM YÜKLE ─────────────────────────────────────────────────────
+
+// ── SİSTEM YÜKLEME ────────────────────────────────────────────────────
 async function load() {
   const v = await FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
@@ -593,8 +539,7 @@ async function load() {
       modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
       delegate: "GPU"
     },
-    runningMode: "VIDEO",
-    numHands: 2,
+    runningMode: "VIDEO", numHands: 2,
     minHandDetectionConfidence: 0.55,
     minHandPresenceConfidence: 0.5,
     minTrackingConfidence: 0.5
@@ -610,97 +555,119 @@ function loop() {
     lastTime = video.currentTime;
     const W = video.clientWidth, H = video.clientHeight;
     cvs.width = W; cvs.height = H;
-    drawCvs.width = W; drawCvs.height = H;
+
+    // Draw Canvas'ın boyutunu sadece ilk seferde veya pencere değiştiğinde güncelle
+    // Böylece eski çizimler HİÇ silinmez (Ghosting yok).
+    if (drawCvs.width !== W || drawCvs.height !== H) {
+      drawCvs.width = W; drawCvs.height = H;
+    }
+
     ctx.clearRect(0, 0, W, H);
 
-    // Ghosting for draw canvas
-    dctx.globalCompositeOperation = "destination-out";
-    dctx.fillStyle = "rgba(0,0,0,0.04)";
-    dctx.fillRect(0, 0, W, H);
-    dctx.globalCompositeOperation = "source-over";
-
-    // Mirror transform
+    // Ayna dönüşümü
     ctx.save(); ctx.translate(W, 0); ctx.scale(-1, 1);
-    dctx.save(); dctx.translate(W, 0); dctx.scale(-1, 1);
+    
+    // Draw canvas çizimi yaparken bağlamı aynala, çizim bitince geri al (aşağıda yapılıyor)
 
     const res = handLM.detectForVideo(video, performance.now());
     let vol = 0, pitch = 0;
 
     if (res.landmarks && res.landmarks.length > 0) {
-      // İskelet çiz
+      
+      // Her halükarda iskeleti çiz
       res.landmarks.forEach(lm => drawHandSkeleton(lm, W, H));
 
+      // ── ÇİZİM MODU ──
       if (mode === "draw") {
+        dctx.save(); dctx.translate(W, 0); dctx.scale(-1, 1);
+
         res.landmarks.forEach((h, hi) => {
-          const extended = h[8].y < h[6].y - 0.04 && h[12].y > h[10].y;
-          const x = h[8].x * W, y = h[8].y * H, pk = "h" + hi;
-          if (extended) {
+          const result = detectDrawColor(h);
+          const { color, isDrawing, label } = result;
+
+          const x = h[8].x * W, y = h[8].y * H;
+          const pk = "h" + hi;
+
+          if (isDrawing) {
             if (prevPos[pk]) {
               dctx.beginPath();
               dctx.moveTo(prevPos[pk].x, prevPos[pk].y);
               dctx.lineTo(x, y);
-              dctx.strokeStyle = `hsl(${(globalHue + hi * 120) % 360},100%,55%)`;
-              dctx.lineWidth = 14; dctx.lineCap = "round"; dctx.stroke();
+              dctx.strokeStyle = color;
+              dctx.lineWidth = color === "#111111" ? 24 : 14;
+              dctx.lineCap = "round"; dctx.lineJoin = "round";
+              if (color !== "#111111") {
+                dctx.shadowBlur = 20; dctx.shadowColor = color;
+              }
+              dctx.stroke(); dctx.shadowBlur = 0;
             }
             prevPos[pk] = {x, y};
-          } else { delete prevPos[pk]; }
+
+            // Aktif renk etiketini ekrana yaz
+            if (label) {
+              ctx.save(); ctx.setTransform(1,0,0,1,0,0);
+              ctx.font = "bold 18px 'Orbitron', monospace";
+              const displayColor = color === "#111111" ? "#aaaaaa" : color;
+              ctx.fillStyle = displayColor;
+              ctx.shadowBlur = 14; ctx.shadowColor = displayColor;
+              ctx.fillText(label, W/2 - 55, 130);
+              ctx.shadowBlur = 0; ctx.restore();
+            }
+          } else {
+            delete prevPos[pk];
+          }
+
+          // Parmak Ucu Fırça Göstergesi
+          ctx.beginPath(); ctx.arc(x, y, 11, 0, Math.PI*2);
+          ctx.fillStyle = isDrawing ? color : "rgba(255,255,255,0.25)";
+          ctx.shadowBlur = isDrawing ? 22 : 5;
+          ctx.shadowColor = color === "#111111" ? "#888" : color;
+          ctx.fill(); ctx.shadowBlur = 0;
         });
+
+        dctx.restore();
+
+      // ── SLIME JÖLE MODU ──
       } else if (mode === "slime") {
         if (res.landmarks.length === 2) {
           const h0 = res.landmarks[0], h1 = res.landmarks[1];
           const dist = Math.hypot(h0[9].x - h1[9].x, h0[9].y - h1[9].y);
-
           const fist0 = isFist(h0), fist1 = isFist(h1);
 
-          if (fist0) {
-            // Yumruk = Küre
-            const cx = h0[9].x * W, cy = h0[9].y * H;
-            drawSlimeSphere(cx, cy, 80);
-          }
-          if (fist1) {
-            const cx = h1[9].x * W, cy = h1[9].y * H;
-            drawSlimeSphere(cx, cy, 80);
-          }
+          if (fist0) drawFlower(h0[9].x * W, h0[9].y * H, 85);
+          if (fist1) drawFlower(h1[9].x * W, h1[9].y * H, 85);
 
           if (!fist0 && !fist1) {
-            // Slime ipler (kalın, cıvık)
             const slimeCount = Math.min(ropeCount, 60);
-            const thickness = Math.max(5, 18 - dist * 20); // yakın = kalın
+            const thickness = Math.max(4, 25 - dist * 32); // İpler yaklaştıkça çok kalınlaşır
+
+            // Merkeze yapışma (ortada toplanma) etkisi
+            const midX = (h0[9].x * W + h1[9].x * W) / 2;
+            const midY = (h0[9].y * H + h1[9].y * H) / 2;
+            const attractForce = Math.min(0.2, 0.25 - dist * 0.15); // Yaklaştıkça ipler yapışır
 
             for (let i = 0; i < slimeCount; i++) {
               const t = FINGER_TIPS[i % 5];
               const p0 = { x: h0[t].x * W, y: h0[t].y * H };
               const p1 = { x: h1[t].x * W, y: h1[t].y * H };
-              slimePool[i].update(p0.x, p0.y, p1.x, p1.y);
-              slimePool[i].drawRope(false, true, thickness);
-            }
-
-            // Parmak uçları arası slime damlaları
-            for (let i = 0; i < 5; i++) {
-              const p0 = {x: h0[FINGER_TIPS[i]].x * W, y: h0[FINGER_TIPS[i]].y * H};
-              const p1 = {x: h1[FINGER_TIPS[i]].x * W, y: h1[FINGER_TIPS[i]].y * H};
-              const r = thickness * 1.4;
-              // Uç toplar
-              ctx.beginPath(); ctx.arc(p0.x, p0.y, r, 0, Math.PI*2);
-              ctx.fillStyle = "#39ff14"; ctx.shadowBlur = 20; ctx.shadowColor = "#39ff14";
-              ctx.fill();
-              ctx.beginPath(); ctx.arc(p1.x, p1.y, r, 0, Math.PI*2);
-              ctx.fill(); ctx.shadowBlur = 0;
+              ropePool[i].update(p0.x, p0.y, p1.x, p1.y);
+              ropePool[i].attractToCenter(midX, midY, attractForce);
+              ropePool[i].drawRope(false, true, thickness);
             }
           }
+
         } else if (res.landmarks.length === 1) {
           const h0 = res.landmarks[0];
-          if (isFist(h0)) {
-            drawSlimeSphere(h0[9].x * W, h0[9].y * H, 80);
-          }
+          if (isFist(h0)) drawFlower(h0[9].x * W, h0[9].y * H, 85);
         }
+
+      // ── ELEKTRİK & AĞLAR MODU ──
       } else if (res.landmarks.length === 2) {
         const h0 = res.landmarks[0], h1 = res.landmarks[1];
         const dist = Math.hypot(h0[9].x - h1[9].x, h0[9].y - h1[9].y);
-
         if (mode === "elec") { vol = 0.28; pitch = 1 - dist; }
-
         const isElec = mode === "elec";
+
         for (let i = 0; i < ropeCount; i++) {
           const t = FINGER_TIPS[i % 5];
           const p0 = { x: h0[t].x * W, y: h0[t].y * H };
@@ -709,10 +676,9 @@ function loop() {
           ropePool[i].drawRope(isElec, false, 0);
         }
 
-        // TAM BAĞLANTI AĞI (ropes modunda tüm eklemler arası)
         if (mode === "ropes") {
-          const allTips0 = [0, 4, 8, 12, 16, 20].map(i => ({x: h0[i].x*W, y: h0[i].y*H}));
-          const allTips1 = [0, 4, 8, 12, 16, 20].map(i => ({x: h1[i].x*W, y: h1[i].y*H}));
+          const allTips0 = [0,4,8,12,16,20].map(i => ({x:h0[i].x*W, y:h0[i].y*H}));
+          const allTips1 = [0,4,8,12,16,20].map(i => ({x:h1[i].x*W, y:h1[i].y*H}));
           for (let a = 0; a < allTips0.length; a++) {
             for (let b = 0; b < allTips1.length; b++) {
               const idx = a * allTips0.length + b;
@@ -728,12 +694,12 @@ function loop() {
 
     playVizzt(vol, pitch);
     globalHue = (globalHue + 2) % 360;
-    ctx.restore(); dctx.restore();
+    ctx.restore();
   }
   requestAnimationFrame(loop);
 }
 
-// ── BAŞLAT ───────────────────────────────────────────────────────────
+// ── BAŞLATMA ──────────────────────────────────────────────────────────
 document.getElementById("startBtn").onclick = () => {
   navigator.mediaDevices.getUserMedia({video:{facingMode:"user", width:1280, height:720}}).then(s => {
     video.srcObject = s; video.play(); running = true;
@@ -741,30 +707,32 @@ document.getElementById("startBtn").onclick = () => {
     document.getElementById("uiBar").style.display = "flex";
     document.getElementById("hintBar").style.display = "block";
     initAudio(); loop();
-  });
+  }).catch(err => console.error("Kamera erişimi reddedildi:", err));
 };
 
-// ── MOD DEĞİŞTİR ─────────────────────────────────────────────────────
+// ── MOD DEĞİŞTİRME ────────────────────────────────────────────────────
 document.querySelectorAll(".mbtn").forEach(b => b.onclick = () => {
   document.querySelectorAll(".mbtn").forEach(x => x.classList.remove("active"));
   b.classList.add("active"); mode = b.dataset.m;
-  document.getElementById("modeIndicator").textContent = b.dataset.m.toUpperCase();
   const isDrawMode = mode === "draw";
   document.getElementById("ropeControl").style.visibility = isDrawMode ? "hidden" : "visible";
+
+  document.getElementById("eraserBtn").style.display = isDrawMode ? "block" : "none";
+  document.getElementById("colorIndicator").style.display = isDrawMode ? "flex" : "none";
 
   const hints = {
     elec: "⚡ İki eli kameraya göster → Elektrik arkları!",
     ropes: "🕸 İki el → Tam bağlantı ağı",
-    slime: "🟢 İki el → Slime | ✊ Yumruk → Küre",
-    draw: "☝️ İşaret parmağı uzat → Hava çizimi"
+    slime: "💧 İki el → Yapışkan Şeffaf Jöle | ✊ Yumruk → Çiçek Aç",
+    draw: "☝️ Kırmızı | ✌️ Siyah | 🤘 Pembe (İşaret + Serçe)"
   };
   document.getElementById("hintBar").textContent = hints[mode] || "";
+  prevPos = {};
 });
 
-// ── SLIDER ───────────────────────────────────────────────────────────
+// ── SLIDER & SCREENSHOT ───────────────────────────────────────────────
 document.getElementById("ropeSlider").oninput = e => ropeCount = parseInt(e.target.value);
 
-// ── EKRAN GÖRÜNTÜSÜ ──────────────────────────────────────────────────
 document.getElementById("shotBtn").onclick = () => {
   const fc = document.createElement("canvas");
   fc.width = cvs.width; fc.height = cvs.height;
@@ -775,7 +743,7 @@ document.getElementById("shotBtn").onclick = () => {
   fctx.drawImage(drawCvs, 0, 0);
   fctx.drawImage(cvs, 0, 0);
   const link = document.createElement("a");
-  link.download = "ar-strings-v2.png";
+  link.download = "ar-strings-v4.png";
   link.href = fc.toDataURL(); link.click();
 };
 </script>
