@@ -212,7 +212,7 @@
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
     .overlay-sub {
-      font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 40px;
+      font-size: 13px; color: rgba(255,255,255,0.45); margin-bottom: 40px;
       text-align: center; max-width: 320px; line-height: 1.7; position: relative; z-index: 1;
     }
     #startBtn {
@@ -258,7 +258,8 @@
   <div class="btns">
     <button class="mbtn active" data-m="elec">⚡ ELEKTRİK</button>
     <button class="mbtn" data-m="ropes">🕸 AĞLAR</button>
-    <button class="mbtn" data-m="slime">💧 SEDEF JÖLE</button> <button class="mbtn" data-m="draw">🎨 ÇİZİM</button>
+    <button class="mbtn" data-m="slime">💧 SEDEF JÖLE</button>
+    <button class="mbtn" data-m="draw">🎨 ÇİZİM</button>
   </div>
   <div class="controls" id="ropeControl">
     <span class="ctrl-label">İP SAYISI</span>
@@ -407,16 +408,18 @@ class Rope {
         ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
       }
       ctx.lineTo(pts[this.n-1].x, pts[this.n-1].y);
-      const thick = slimeRadius * 2.8;
+      
+      // Çok daha kalın olması için katlayıcıyı artırdım (2.8 -> 4.5)
+      const thick = slimeRadius * 4.5; 
       ctx.lineCap = "round"; ctx.lineJoin = "round";
 
       // Şeffaf sedef dokusu oluşturma lojiği
       ctx.globalAlpha = 0.55; // Daha şeffaf jöle
 
       // 1. Dış Glow (Şeffaf Parlama)
-      ctx.lineWidth = thick + 9; // Parlama genişliği artırıldı
-      ctx.strokeStyle = "rgba(255,255,255,0.06)"; // İnci beyazıopaklığı düşük
-      ctx.shadowBlur = 30; ctx.shadowColor = "rgba(180,245,255,0.5)"; // Cam göbeği beyazı parlaması
+      ctx.lineWidth = thick + 14; // Glow kalınlığı artırıldı
+      ctx.strokeStyle = "rgba(255,255,255,0.06)"; // İnci beyazı opaklığı düşük
+      ctx.shadowBlur = 35; ctx.shadowColor = "rgba(180,245,255,0.5)"; // Cam göbeği beyazı parlaması
       ctx.stroke(); ctx.shadowBlur = 0;
 
       // 2. Cam/Sedef Gövde (Sedef rengi)
@@ -692,7 +695,9 @@ function loop() {
 
           if (!fist0 && !fist1) {
             const slimeCount = Math.min(ropeCount, 60);
-            const thickness = Math.max(4, 25 - dist * 32); // İpler yaklaştıkça sedef jöle kalınlaşır
+            
+            // ÇOK KALIN OLACAK ŞEKİLDE TEMEL DEĞERLERİ YÜKSELTTİM
+            const thickness = Math.max(15, 45 - dist * 40); 
 
             // Yapışma merkezi lojiği
             const midX = (h0[9].x * W + h1[9].x * W) / 2;
@@ -712,7 +717,8 @@ function loop() {
             for (let i = 0; i < 5; i++) {
               const p0 = {x: h0[FINGER_TIPS[i]].x*W, y: h0[FINGER_TIPS[i]].y*H};
               const p1 = {x: h1[FINGER_TIPS[i]].x*W, y: h1[FINGER_TIPS[i]].y*H};
-              const r2 = thickness * 1.5;
+              // Damlalar da kalılığa bağlı olarak büyütüldü
+              const r2 = thickness * 1.8; 
               drawGlassSphere(p0.x, p0.y, r2);
               drawGlassSphere(p1.x, p1.y, r2);
             }
