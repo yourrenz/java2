@@ -13,6 +13,8 @@
       --c3: #ffee00;
       --c4: #7b2fff;
       --c5: #00ff88;
+      /* Sedef (şeffaf/inci beyazı) rengi için yeni CSS değişkeni */
+      --slime: #e0ffff; /* Cam göbeği beyaz / İnci tonu */
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -83,7 +85,7 @@
     /* ── SİLGİ BUTONU (Üst Sağ Köşe) ── */
     #eraserBtn {
       position: fixed; top: 76px; right: 20px; z-index: 50;
-      display: none;
+      display: none; /* Sadece çizim modunda görünür */
       background: rgba(0,5,8,0.85);
       border: 1.5px solid rgba(255,255,255,0.25); color: #fff;
       padding: 10px 18px; border-radius: 14px;
@@ -98,6 +100,20 @@
       box-shadow: 0 0 24px rgba(255,26,108,0.5);
       transform: scale(1.05);
     }
+
+    /* ── RENK GÖSTERGESİ (Çizim Modu) ── */
+    #colorIndicator {
+      position: fixed; top: 76px; left: 20px; z-index: 50;
+      display: none;
+      flex-direction: column; gap: 6px;
+      background: rgba(0,5,8,0.82);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 12px 16px; border-radius: 14px;
+      backdrop-filter: blur(14px);
+      font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 1px;
+    }
+    .color-row { display: flex; align-items: center; gap: 9px; color: rgba(255,255,255,0.7); }
+    .color-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.3); }
 
     /* ── BOTTOM BAR ── */
     .bottom-bar {
@@ -133,6 +149,11 @@
     .mbtn.active[data-m="ropes"] {
       background: var(--c1); color: #000; border-color: var(--c1);
       box-shadow: 0 0 20px rgba(0,255,240,0.5);
+    }
+    /* Geri yüklenen slime modu butonu için sedefli aktif stil */
+    .mbtn.active[data-m="slime"] {
+      background: var(--slime); color: #000; border-color: var(--slime);
+      box-shadow: 0 0 20px rgba(224,255,255,0.5); /* Sedef parlama */
     }
     .mbtn.active[data-m="draw"] {
       background: var(--c4); color: #fff; border-color: var(--c4);
@@ -224,6 +245,12 @@
 
 <button id="eraserBtn">🧹 EKRANI TEMİZLE</button>
 
+<div id="colorIndicator">
+  <div class="color-row"><div class="color-dot" style="background:#ff0000;box-shadow:0 0 8px #ff0000"></div> ☝️ İşaret → KIRMIZI</div>
+  <div class="color-row"><div class="color-dot" style="background:#222;border-color:#888"></div> ✌️ İşaret + Orta → SİYAH</div>
+  <div class="color-row"><div class="color-dot" style="background:#ff69b4;box-shadow:0 0 8px #ff69b4"></div> 🤘 İşaret + Serçe → PEMBE</div>
+</div>
+
 <div id="hintBar">☝️ İki eli kameraya göster → ipler oluşur</div>
 
 <div class="bottom-bar" id="uiBar" style="display:none">
@@ -231,7 +258,7 @@
   <div class="btns">
     <button class="mbtn active" data-m="elec">⚡ ELEKTRİK</button>
     <button class="mbtn" data-m="ropes">🕸 AĞLAR</button>
-    <button class="mbtn" data-m="draw">🎨 ÇİZİM</button>
+    <button class="mbtn" data-m="slime">💧 SEDEF JÖLE</button> <button class="mbtn" data-m="draw">🎨 ÇİZİM</button>
   </div>
   <div class="controls" id="ropeControl">
     <span class="ctrl-label">İP SAYISI</span>
@@ -346,7 +373,7 @@ class Rope {
     }
   }
 
-  // İpleri merkeze daha güçlü çekerek "birbirine yapışma" hissi ver
+  // Slime modu için ipleri merkeze çekme (yapışkan etki) lojiği
   attractToCenter(cx, cy, force) {
     for (let i = 1; i < this.n - 1; i++) {
       this.pts[i].x += (cx - this.pts[i].x) * force;
@@ -372,7 +399,7 @@ class Rope {
       ctx.shadowBlur = 0;
 
     } else if (isSlime) {
-      // ── ŞEFFAF / SEDEFLİ JÖLE (Cam Görünümü) ──
+      // ── ŞEFFAF / SEDEFLİ JÖLE (Sedef Görünümü) ──
       ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
       for (let i = 1; i < this.n - 1; i++) {
         const mx = (pts[i].x + pts[i+1].x) / 2;
@@ -383,28 +410,28 @@ class Rope {
       const thick = slimeRadius * 2.8;
       ctx.lineCap = "round"; ctx.lineJoin = "round";
 
-      // Opaklığı düşürerek şeffaf bir cam dokusu oluştur
-      ctx.globalAlpha = 0.6; // Şeffaflığı artırdım
+      // Şeffaf sedef dokusu oluşturma lojiği
+      ctx.globalAlpha = 0.55; // Daha şeffaf jöle
 
-      // 1. Dış Glow (Daha yumuşak ve şeffaf bir parlama)
-      ctx.lineWidth = thick + 8; // Genişliği biraz artırdım
-      ctx.strokeStyle = "rgba(255,255,255,0.08)"; // Opaklığı düşürdüm
-      ctx.shadowBlur = 28; ctx.shadowColor = "rgba(120,210,255,0.4)"; // Parlamayı artırdım
+      // 1. Dış Glow (Şeffaf Parlama)
+      ctx.lineWidth = thick + 9; // Parlama genişliği artırıldı
+      ctx.strokeStyle = "rgba(255,255,255,0.06)"; // İnci beyazıopaklığı düşük
+      ctx.shadowBlur = 30; ctx.shadowColor = "rgba(180,245,255,0.5)"; // Cam göbeği beyazı parlaması
       ctx.stroke(); ctx.shadowBlur = 0;
 
-      // 2. Cam/Sedef Gövde (Daha pürüzsüz ve şeffaf)
+      // 2. Cam/Sedef Gövde (Sedef rengi)
       ctx.lineWidth = thick;
-      ctx.strokeStyle = "rgba(220, 250, 255, 0.2)"; // Opaklığı düşürdüm
+      ctx.strokeStyle = "rgba(230, 255, 255, 0.2)"; // Çok hafif inci beyazı şeffaf
       ctx.stroke();
 
-      // 3. İç parlak damar (Daha belirsiz)
+      // 3. İç parlak damar (Pürüzsüz)
       ctx.lineWidth = thick * 0.45;
-      ctx.strokeStyle = "rgba(240,255,255,0.25)"; // Opaklığı düşürdüm
+      ctx.strokeStyle = "rgba(240,255,255,0.2)"; // İç saydamlık opaklığı düşük
       ctx.stroke();
 
-      // 4. Highlight şeridi (Keskin ve net bir yansıma)
+      // 4. Highlight şeridi (Keskin cam yansıması)
       ctx.lineWidth = thick * 0.15;
-      ctx.strokeStyle = "rgba(255,255,255,0.85)"; // Parlaklığı artırdım
+      ctx.strokeStyle = "rgba(255,255,255,0.8)"; // Parlak yansıma çizgisi
       ctx.stroke();
 
       // Alfa değerini sıfırla
@@ -513,29 +540,29 @@ function drawFlower(cx, cy, r) {
   ctx.fill(); ctx.shadowBlur = 0;
 }
 
-// ── ŞEFFAF CAM KÜRE (Slime yumruk) ────────────────────────────────────
+// ── ŞEFFAF CAM KÜRE (Damla uçlar) ─────────────────────────────────────
 function drawGlassSphere(cx, cy, r) {
   // Dış glow
   const og = ctx.createRadialGradient(cx, cy, r*0.6, cx, cy, r*1.6);
-  og.addColorStop(0, "rgba(180,240,255,0.10)");
+  og.addColorStop(0, "rgba(200,245,255,0.12)"); // İnci gökkuşağı parlaması
   og.addColorStop(1, "transparent");
   ctx.beginPath(); ctx.arc(cx, cy, r*1.6, 0, Math.PI*2);
   ctx.fillStyle = og; ctx.fill();
 
   // Cam gövde
   const bg = ctx.createRadialGradient(cx-r*0.2, cy-r*0.2, r*0.05, cx, cy, r);
-  bg.addColorStop(0,   "rgba(220,255,255,0.18)");
-  bg.addColorStop(0.4, "rgba(100,220,255,0.10)");
-  bg.addColorStop(0.8, "rgba(50,180,220,0.16)");
-  bg.addColorStop(1,   "rgba(20,120,180,0.28)");
+  bg.addColorStop(0,   "rgba(220,255,255,0.22)"); // İnci göbeği
+  bg.addColorStop(0.4, "rgba(120,225,255,0.14)"); // Saydam inci beyazı
+  bg.addColorStop(0.8, "rgba(60,200,230,0.18)"); // Şeffaf cam tonu
+  bg.addColorStop(1,   "rgba(30,140,200,0.30)"); // Kenar şeffaflığıopaklığı
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
   ctx.fillStyle = bg;
-  ctx.shadowBlur = 22; ctx.shadowColor = "rgba(100,220,255,0.5)";
+  ctx.shadowBlur = 25; ctx.shadowColor = "rgba(100,220,255,0.6)"; // Cam parlaması
   ctx.fill(); ctx.shadowBlur = 0;
 
   // Kenar çizgisi
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
-  ctx.strokeStyle = "rgba(180,240,255,0.42)";
+  ctx.strokeStyle = "rgba(180,240,255,0.45)"; // İnci kenarı çizgisiopaklığı
   ctx.lineWidth = 2.5; ctx.stroke();
 
   // Ana highlight sol üst
@@ -554,10 +581,10 @@ function drawGlassSphere(cx, cy, r) {
   const tbbl = performance.now() * 0.0009;
   for (let i = 0; i < 5; i++) {
     const a = tbbl + i * Math.PI * 0.4;
-    const bx = cx + Math.cos(a) * r * 0.42;
-    const by = cy + Math.sin(a) * r * 0.38;
-    ctx.beginPath(); ctx.arc(bx, by, r * 0.07, 0, Math.PI*2);
-    ctx.fillStyle = "rgba(255,255,255,0.38)"; ctx.fill();
+    const bx = cx + Math.cos(a) * r * 0.45;
+    const by = cy + Math.sin(a) * r * 0.4;
+    ctx.beginPath(); ctx.arc(bx, by, r * 0.08, 0, Math.PI*2);
+    ctx.fillStyle = "rgba(255,255,255,0.42)"; ctx.fill();
   }
 }
 
@@ -644,7 +671,7 @@ function loop() {
             delete prevPos[pk];
           }
 
-          // Parmak ucu göstergesi
+          // Parmak ucu fırça göstergesi
           ctx.beginPath(); ctx.arc(x, y, 11, 0, Math.PI*2);
           ctx.fillStyle = isDrawing ? color : "rgba(255,255,255,0.25)";
           ctx.shadowBlur = isDrawing ? 22 : 5;
@@ -652,7 +679,7 @@ function loop() {
           ctx.fill(); ctx.shadowBlur = 0;
         });
 
-      // ── SLIME MODU ──────────────────────────────────────────────────
+      // ── GERİ YÜKLENEN SLIME MODU ──
       } else if (mode === "slime") {
         if (res.landmarks.length === 2) {
           const h0 = res.landmarks[0], h1 = res.landmarks[1];
@@ -665,9 +692,9 @@ function loop() {
 
           if (!fist0 && !fist1) {
             const slimeCount = Math.min(ropeCount, 60);
-            const thickness = Math.max(4, 22 - dist * 28); // Daha kalın ve "cıvık" bir Verlet fizik motoru kullandım
+            const thickness = Math.max(4, 25 - dist * 32); // İpler yaklaştıkça sedef jöle kalınlaşır
 
-            // Yapışma merkezi
+            // Yapışma merkezi lojiği
             const midX = (h0[9].x * W + h1[9].x * W) / 2;
             const midY = (h0[9].y * H + h1[9].y * H) / 2;
 
@@ -676,12 +703,12 @@ function loop() {
               const p0 = { x: h0[t].x * W, y: h0[t].y * H };
               const p1 = { x: h1[t].x * W, y: h1[t].y * H };
               ropePool[i].update(p0.x, p0.y, p1.x, p1.y);
-              // Yapışkan etki: ipler merkeze doğru çekilsin
+              // Yapışkan etki: ipler merkeze doğru çekilsin, sedef jöle "birlikte" hareket etsin
               ropePool[i].attractToCenter(midX, midY, 0.09);
               ropePool[i].drawRope(false, true, thickness);
             }
 
-            // Parmak uçlarında şeffaf cam toplar
+            // Parmak uçlarında şeffaf sedef damla uçlar
             for (let i = 0; i < 5; i++) {
               const p0 = {x: h0[FINGER_TIPS[i]].x*W, y: h0[FINGER_TIPS[i]].y*H};
               const p1 = {x: h1[FINGER_TIPS[i]].x*W, y: h1[FINGER_TIPS[i]].y*H};
@@ -696,7 +723,7 @@ function loop() {
           if (isFist(h0)) drawFlower(h0[9].x * W, h0[9].y * H, 85);
         }
 
-      // ── ELEKTRİK & AĞLAR MODU ───────────────────────────────────────
+      // ── ELEKTRİK & AĞLAR MODU ──
       } else if (res.landmarks.length === 2) {
         const h0 = res.landmarks[0], h1 = res.landmarks[1];
         const dist = Math.hypot(h0[9].x - h1[9].x, h0[9].y - h1[9].y);
@@ -760,8 +787,8 @@ document.querySelectorAll(".mbtn").forEach(b => b.onclick = () => {
   const hints = {
     elec: "⚡ İki eli kameraya göster → Elektrik arkları!",
     ropes: "🕸 İki el → Tam bağlantı ağı",
-    slime: "💧 İki el → Yapışkan Jöle | ✊ Yumruk → Çiçek 🌸",
-    draw: "☝️ Kırmızı | ✌️ Siyah | 👍 Pembe"
+    slime: "💧 SEDEF JÖLE | ✊ Yumruk → Çiçek 🌸", // Hint metni geri yüklenen slime modu için güncellendi
+    draw: "☝️ Kırmızı | ✌️ Siyah | 👍 Pembe (Rock jesti)"
   };
   document.getElementById("hintBar").textContent = hints[mode] || "";
 
